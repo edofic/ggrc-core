@@ -46,10 +46,36 @@ VM](#provision-a-running-vagrant-vm) below for more).
 
 Now you're in the VM and ready to rock. Get to work!
 
+### Quickstart with docker
+
+Alternative setup is using just docker. Run a vagrant-like fat docker container
+named *ggrc* with this command (from the repo root)
+
+    docker-compose up
+
+Add `-d` to automatically daemonize.
+To enter a running container run
+
+    docker exec -it ggrccore_dev_1 su vagrant
+
+And then continue just like with vagrant
+
+    build_compass
+    build_assets
+    db_migrate
+
+`docker-compose` will manage the containers for you. If you want to reuse old container use
+
+    docker-compose --no-recreate
+
+If you want to use pure docker use the following run command
+
+    docker run -d --name ggrc -p 8080:8080 --privileged -v `pwd`:/vagrant edofic/ggrc-core /sbin/my_init
+
 ### Launching gGRC as Stand-alone Flask
 
-Most development is done in a stand-alone flask. We strive to make getting up 
-and running as simple as possible; to that end, launching the application is 
+Most development is done in a stand-alone flask. We strive to make getting up
+and running as simple as possible; to that end, launching the application is
 simple:
 
 ```sh
@@ -58,7 +84,7 @@ launch_ggrc
 
 ### Launching gGRC in Google App Engine SDK
 
-We strive to make getting up and running as simple as possible; to that end, 
+We strive to make getting up and running as simple as possible; to that end,
 launching the application in the Google App Engine SDK environment is simple:
 
 ```sh
@@ -76,7 +102,7 @@ deploy_appengine extras/deploy_settings_local.sh
 
 The application will be accessible via this URL: <http://localhost:8080/>
 
-If you're running the Google App Engine SDK, the App Engine management console 
+If you're running the Google App Engine SDK, the App Engine management console
 will be avaiable via this URL: <http://localhost:8000/>
 
 ### Running Tests
@@ -355,6 +381,6 @@ build_assets
 # Copyright Notice
 
 Copyright (C) 2013-2015 Google Inc., authors, and contributors (see the AUTHORS
-file).  
+file).
 Licensed under the [Apache 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 license (see the LICENSE file).

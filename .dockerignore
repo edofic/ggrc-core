@@ -1,0 +1,26 @@
+.git
+node_modules
+tmp
+src/requirements.txt.md5
+src/packages.zip
+src/app.yaml
+*.pyc
+src/instance
+.DS_Store
+
+# Non-shared default recipe extension
+site-cookbooks/ggrc/recipes/local.rb
+
+# Generated build number
+src/ggrc/settings/build_number.py
+
+# Asset-pipeline/cache related files
+src/ggrc/static/.webassets-cache
+src/ggrc/static/webassets-external
+src/ggrc/static/assets.manifest
+src/ggrc/static/dashboard*
+src/ggrc/assets/stylesheets/dashboard.css
+src/ggrc/assets/stylesheets/design.css
+src/ggrc/.sass-cache
+
+node_modules

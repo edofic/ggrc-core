@@ -1,0 +1,10 @@
+dev:
+  build: .
+  command: /sbin/my_init
+  ports:
+   - "8000:8000"
+   - "8080:8080"
+   - "9876:9876"
+  volumes:
+    - ".:/vagrant"
+  privileged: true
