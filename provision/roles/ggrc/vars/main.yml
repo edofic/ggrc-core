@@ -15,7 +15,7 @@ ggrc_packages:
   - name: python-imaging
   - name: sqlite3
   - name: python-dev
-  - name: rubygems
+  - name: ruby
   - name: nodejs
 
 ggrc_development_directories:
