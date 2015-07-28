@@ -19,6 +19,12 @@ environment:
 |[Vagrant](http://www.vagrantup.com/)      | Handy scriptable VM management           |
 |[Ansible](http://www.ansible.com/home)    | Provisioning and deployment tool         |
 
+Or alternatively (see Quickstart with docker)
+
+|               Prerequisite      |         Description        |
+|---------------------------------|----------------------------|
+|[Docker](https://www.docker.com/)| Container management toool |
+
 Quick Start
 -----------
 
@@ -49,14 +55,14 @@ Now you're in the VM and ready to rock. Get to work!
 ### Quickstart with docker
 
 Alternative setup is using just docker. Run a vagrant-like fat docker container
-named *ggrc* with this command (from the repo root)
+named *ggrccore_dev_1* with this command (from the repo root)
 
     docker-compose up
 
 Add `-d` to automatically daemonize.
 To enter a running container run
 
-    docker exec -it ggrccore_dev_1 su vagrant
+    docker exec -it ggrccore_dev_1 bash
 
 And then continue just like with vagrant
 
@@ -67,10 +73,6 @@ And then continue just like with vagrant
 `docker-compose` will manage the containers for you. If you want to reuse old container use
 
     docker-compose --no-recreate
-
-If you want to use pure docker use the following run command
-
-    docker run -d --name ggrc -p 8080:8080 --privileged -v `pwd`:/vagrant edofic/ggrc-core /sbin/my_init
 
 ### Launching gGRC as Stand-alone Flask
 
