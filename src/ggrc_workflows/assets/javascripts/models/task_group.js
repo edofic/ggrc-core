@@ -94,7 +94,7 @@
       this.validateNonBlank("contact");
       this.validateContact(["_transient.contact", "contact"]);
 
-      this.validate('start_date end_date'.split(' '), function (newVal, prop) {
+      this.validate(["start_date", "end_date"], function (newVal, prop) {
         var that = this,
          workflow = GGRC.page_instance(),
          dates_are_valid = true;

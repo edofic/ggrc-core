@@ -856,12 +856,21 @@ CMS.Controllers.TreeLoader("CMS.Controllers.TreeView", {
         lo = 0,
         hi = children.length - 1,
         max = hi,
-        steps = 0;
+        steps = 0,
+        visible = [],
+        already_visible = _.filter(this.element[0].children, function(e) {
+          // doing this manualy is 10x faster than a jQuery selector and performance
+          // here matters since it runs on every scroll event on a potentialy long
+          // list of items
+          return e.tagName == "LI";
+        }),
+        i, control, index, page_count, mid, el, pos;
+
     while (steps < MAX_STEPS && lo < hi) {
       steps += 1;
-      var mid = (lo + hi) / 2 | 0,
-          el = children[mid],
-          pos = el_position(children[mid]);
+      mid = (lo + hi) / 2 | 0;
+      el = children[mid];
+      pos = el_position(children[mid]);
       if (pos < 0) {
         lo = mid;
         continue;
@@ -873,7 +882,7 @@ CMS.Controllers.TreeLoader("CMS.Controllers.TreeView", {
       lo = mid;
       hi = mid;
     }
-    var page_count = this.options.scroll_page_count;
+    page_count = this.options.scroll_page_count;
     while (lo > 0 && el_position(children[lo - 1]) >= (-page_count)) {
       lo -= 1;
     }
@@ -881,13 +890,8 @@ CMS.Controllers.TreeLoader("CMS.Controllers.TreeView", {
       hi += 1;
     }
 
-    var last_visible = this._last_visible || [],
-        visible = [];
-    for (var i in last_visible) {
-      var control = last_visible[i];
-      if (control.element === undefined || control.element === null) {
-        continue; // element was removed
-      }
+    for (i in already_visible) {
+      control = $(already_visible[i]).control();
       if (Math.abs(this.el_position(control.element)) <= page_count) {
         visible.push(control);
       } else {
@@ -895,8 +899,9 @@ CMS.Controllers.TreeLoader("CMS.Controllers.TreeView", {
       }
     }
 
-    for (var i = lo; i <= hi; i++) {
-      var control = $(children[i]).control();
+    for (i = lo; i <= hi; i++) {
+      index = this._is_scrolling_up ? (hi - (i - lo)) : i;
+      control = $(children[index]).control();
       if (control === undefined || control === null) {
         // TODO this should not be necessary
         // draw_visible is called too soon when controlers are not yet
@@ -909,17 +914,23 @@ CMS.Controllers.TreeLoader("CMS.Controllers.TreeView", {
         control.draw_node();
       }
     }
-    this._last_visible = visible;
   }, 100, {leading: true})
+  , _last_scroll_top : 0
+  , _is_scrolling_up : false
 
   , "{scroll_element} scroll": function (el, ev) {
-    setTimeout(this.draw_visible.bind(this), 0);
+    this._is_scrolling_up = this._last_scroll_top > el.scrollTop();
+    this._last_scroll_top = el.scrollTop();
+    this.draw_visible();
   }
 
   , "{scroll_element} resize": function (el, ev) {
     setTimeout(this.draw_visible.bind(this), 0);
   }
 
+  , ".tree-item-placeholder mouseenter": function(el, ev) {
+    el.control().draw_node();
+  }
   , "{original_list} add" : function(list, ev, newVals, index) {
     var that = this
       , real_add = []
@@ -1188,14 +1199,14 @@ CMS.Controllers.TreeLoader("CMS.Controllers.TreeView", {
     ev.stopPropagation();
   },
   reload_list: function(force_reload) {
-    if (this.options.list === undefined){
+    if (this.options.list === undefined || this.options.list === null){
       return;
     }
     this._draw_list_deferred = false;
+    this._is_scrolling_up = false;
     this.find_all_deferred = false;
     this.get_count_deferred = false;
     this.options.list.replace([]);
-    this._last_visible = [];
     this.element.children('.cms_controllers_tree_view_node').remove();
     this.draw_list(this.options.original_list, true, force_reload);
     this.init_count();
@@ -1437,14 +1448,18 @@ can.Control("CMS.Controllers.TreeViewNode", {
   }
 
   , draw_node: function() {
+    if (this._draw_node_in_progress) {
+      return;
+    }
+    this._draw_node_in_progress = true;
     this.add_child_lists_to_child();
-    //setTimeout(function() {
-      var that = this;
-      can.view(that.options.show_view, that.options, this._ifNotRemoved(function(frag) {
-        that.replace_element(frag);
-        that._draw_node_deferred.resolve();
-      }));
-    //}, 20);
+    setTimeout(function() {
+      can.view(this.options.show_view, this.options, this._ifNotRemoved(function(frag) {
+        this.replace_element(frag);
+        this._draw_node_deferred.resolve();
+      }.bind(this)));
+      this._draw_node_in_progress = false;
+    }.bind(this), 2); // We give the browser a 2ms pause for scrolling
   }
   , draw_placeholder: function() {
       var that = this;

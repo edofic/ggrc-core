@@ -13,7 +13,7 @@ from ggrc.models.relationship import Relationship
 from ggrc.services.common import Resource
 from ggrc import db
 from ggrc.automapper.rules import rules
-from ggrc.utils import benchmark
+from ggrc.utils import benchmark, with_nop
 from ggrc.rbac.permissions import is_allowed_update
 from ggrc.login import get_current_user
 
@@ -30,12 +30,16 @@ class Stub(namedtuple("Stub", ["type", "id"])):
 
 
 class AutomapperGenerator(object):
-  def __init__(self, relationship):
+  def __init__(self, relationship, use_benchmark=True):
     self.relationship = relationship
     self.processed = set()
     self.queue = set()
     self.cache = dict()
     self.auto_mappings = set()
+    if use_benchmark:
+      self.benchmark = benchmark
+    else:
+      self.benchmark = with_nop
 
   def related(self, obj):
     if obj in self.cache:
@@ -60,7 +64,7 @@ class AutomapperGenerator(object):
       return (dst, src)
 
   def generate_automappings(self):
-    with benchmark("Automapping generate_automappings"):
+    with self.benchmark("Automapping generate_automappings"):
       self.queue.add(self.relate(Stub.from_source(self.relationship),
                      Stub.from_destination(self.relationship)))
       count = 0
@@ -75,9 +79,8 @@ class AutomapperGenerator(object):
 
         self._ensure_relationship(src, dst)
         self.processed.add(entry)
-        with benchmark("Automapping _step: %d" % count):
-          self._step(src, dst)
-          self._step(dst, src)
+        self._step(src, dst)
+        self._step(dst, src)
 
       if len(self.auto_mappings) <= rules.count_limit:
         self._flush()
@@ -92,7 +95,7 @@ class AutomapperGenerator(object):
   def _flush(self):
     if len(self.auto_mappings) == 0:
       return
-    with benchmark("Automapping flush"):
+    with self.benchmark("Automapping flush"):
       current_user = get_current_user()
       now = datetime.now()
       # We are doing an INSERT IGNORE INTO here to mitigate a race condition

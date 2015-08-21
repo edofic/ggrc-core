@@ -925,9 +925,9 @@ p {
   color: $red;
 }
 .user-disabled {
-  color:#f00 !important;
+  color:$red !important;
   font-weight:bold;
-  font-size: $f-small;
+  font-size: 10px;
 }
 
 .item-util {

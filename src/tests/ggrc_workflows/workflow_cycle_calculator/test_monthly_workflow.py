@@ -1010,3 +1010,172 @@ class TestMonthlyWorkflow(BaseWorkflowTestCase):
         Cycle.start_date == date(2015, 9, 15)
       )
       self.assertEqual(cycle.count(), 0)
+
+  def test_setup_tasks_didnt_get_deleted_cycle_tasks_got_deleted(self):
+    """Test usecase where user deletes latest cycle's tasks but NOT setup tasks"""
+    monthly_workflow = {
+      "title": "monthly test wf",
+      "description": "start this many a time",
+      "frequency": "monthly",
+      "task_groups": [
+        {"title": "task group 1",
+         'task_group_tasks': [
+           {
+             'title': 'monthly task 1',
+             "relative_start_day": 15,  # 6/15/2015 Mon
+             "relative_end_day": 19,  # 6/19/2015 Fri
+           }, {
+             'title': 'monthly task 2',
+             "relative_start_day": 17,  # 6/17/2015 Wed
+             "relative_end_day": 23,  # 6/23/2015 Tue
+           }],
+         "task_group_objects": []
+         },
+      ]
+    }
+    with freeze_time("2015-6-9 13:00:00"):
+      _, wf = self.generator.generate_workflow(monthly_workflow)
+      _, awf = self.generator.activate_workflow(wf)
+
+      active_wf = db.session.query(Workflow).filter(Workflow.id == wf.id).one()
+      self.assertEqual(active_wf.status, "Active")
+      self.assertEqual(active_wf.next_cycle_start_date, date(2015, 6, 15))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 6, 15))
+      self.assertEqual(cycle.end_date, date(2015, 6, 23))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 7, 15))
+      self.assertEqual(cycle.end_date, date(2015, 7, 23))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 8, 14))
+      self.assertEqual(cycle.end_date, date(2015, 8, 21))
+
+      cycle_task_1 = db.session.query(CycleTaskGroupObjectTask).filter(
+        CycleTaskGroupObjectTask.cycle_id == cycle.id,
+        CycleTaskGroupObjectTask.start_date == date(2015, 8, 14),
+        CycleTaskGroupObjectTask.title == "monthly task 1"
+      ).one()
+
+      cycle_task_2 = db.session.query(CycleTaskGroupObjectTask).filter(
+        CycleTaskGroupObjectTask.cycle_id == cycle.id,
+        CycleTaskGroupObjectTask.start_date == date(2015, 8, 17),
+        CycleTaskGroupObjectTask.title == "monthly task 2"
+      ).one()
+
+      self.assertEqual(cycle.is_current, True)
+
+      response = self.generator.api.delete(cycle_task_1, cycle_task_1.id)
+      self.assert200(response)
+
+      response = self.generator.api.delete(cycle_task_2, cycle_task_2.id)
+      self.assert200(response)
+
+      cycle = db.session.query(Cycle).filter(Cycle.id == cycle.id).one()
+      self.assertEqual(cycle.is_current, False)
+
+      active_wf = db.session.query(Workflow).filter(Workflow.id == wf.id).one()
+      self.assertEqual(active_wf.next_cycle_start_date, date(2015, 9, 15))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 9, 15))
+      self.assertEqual(cycle.end_date, date(2015, 9, 23))
+
+      active_wf = db.session.query(Workflow).filter(Workflow.id == wf.id).one()
+      self.assertEqual(active_wf.next_cycle_start_date, date(2015, 10, 15))
+
+  def test_setup_tasks_deleted_last_cycle_tasks_deleted(self):
+    """Test usecase where user deletes latest cycle's tasks AND setup tasks"""
+    monthly_workflow = {
+      "title": "monthly test wf",
+      "description": "start this many a time",
+      "frequency": "monthly",
+      "task_groups": [
+        {"title": "task group 1",
+         'task_group_tasks': [
+           {
+             'title': 'monthly task 1',
+             "relative_start_day": 15,  # 6/15/2015 Mon
+             "relative_end_day": 19,  # 6/19/2015 Fri
+           }, {
+             'title': 'monthly task 2',
+             "relative_start_day": 17,  # 6/17/2015 Wed
+             "relative_end_day": 23,  # 6/23/2015 Tue
+           }],
+         "task_group_objects": []
+         },
+      ]
+    }
+
+    new_task_group = {"title": "new task group 2",
+     'task_group_tasks': [
+       {
+         'title': 'monthly task 2',
+         "relative_start_day": 5,
+         "relative_end_day": 10,
+       }],
+     "task_group_objects": []
+     }
+
+    with freeze_time("2015-6-9 13:00:00"):
+      # Lets activate the workflow and generate a couple of cycles...
+      _, wf = self.generator.generate_workflow(monthly_workflow)
+      _, awf = self.generator.activate_workflow(wf)
+
+      active_wf = db.session.query(Workflow).filter(Workflow.id == wf.id).one()
+      self.assertEqual(active_wf.status, "Active")
+      self.assertEqual(active_wf.next_cycle_start_date, date(2015, 6, 15))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 6, 15))
+      self.assertEqual(cycle.end_date, date(2015, 6, 23))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 7, 15))
+      self.assertEqual(cycle.end_date, date(2015, 7, 23))
+
+      _, cycle = self.generator.generate_cycle(wf)
+      self.assertEqual(cycle.start_date, date(2015, 8, 14))
+      self.assertEqual(cycle.end_date, date(2015, 8, 21))
+
+      # Delete the task group and verify that there is no next cycle start date
+      tg = db.session.query(TaskGroup).filter(
+        TaskGroup.workflow_id == wf.id).one()
+
+      response = self.generator.api.delete(tg, tg.id)
+      self.assert200(response)
+
+      active_wf = db.session.query(Workflow).filter(Workflow.id == wf.id).one()
+      self.assertEqual(active_wf.next_cycle_start_date, None)
+
+      # Remove last cycle's tasks
+      self.assertEqual(cycle.is_current, True)
+      cycle_task_1 = db.session.query(CycleTaskGroupObjectTask).filter(
+        CycleTaskGroupObjectTask.cycle_id == cycle.id,
+        CycleTaskGroupObjectTask.start_date == date(2015, 8, 14),
+        CycleTaskGroupObjectTask.title == "monthly task 1"
+      ).one()
+      response = self.generator.api.delete(cycle_task_1, cycle_task_1.id)
+      self.assert200(response)
+
+      cycle = db.session.query(Cycle).filter(Cycle.id == cycle.id).one()
+      self.assertEqual(cycle.start_date, date(2015, 8, 17))
+
+      cycle_task_2 = db.session.query(CycleTaskGroupObjectTask).filter(
+        CycleTaskGroupObjectTask.cycle_id == cycle.id,
+        CycleTaskGroupObjectTask.start_date == date(2015, 8, 17),
+        CycleTaskGroupObjectTask.title == "monthly task 2"
+      ).one()
+      response = self.generator.api.delete(cycle_task_2, cycle_task_2.id)
+      self.assert200(response)
+
+      # Verify cycle got completed
+      cycle = db.session.query(Cycle).filter(Cycle.id == cycle.id).one()
+      self.assertEqual(cycle.is_current, False)
+
+      _, tg = self.generator.generate_task_group(wf, data=new_task_group)
+
+      active_wf = db.session.query(Workflow).filter(Workflow.id == wf.id).one()
+      self.assertEqual(active_wf.next_cycle_start_date, date(2015, 8, 5))

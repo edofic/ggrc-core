@@ -309,7 +309,7 @@ class MappingColumnHandler(ColumnHandler):
         db.session.delete(mapping)
     db.session.flush()
     for relationship in relationships:
-      AutomapperGenerator(relationship).generate_automappings()
+      AutomapperGenerator(relationship, False).generate_automappings()
     self.dry_run = True
 
   def get_value(self):
@@ -351,6 +351,12 @@ class CustomAttributeColumHandler(TextColumnHandler):
     if value.attribute_value is None:
       return None
     return value
+
+  def get_value(self):
+    for value in self.row_converter.obj.custom_attribute_values:
+      if value.custom_attribute_id == self.definition.id:
+        return value.attribute_value
+    return None
 
   def set_obj_attr(self):
     if self.value:

@@ -317,6 +317,8 @@ def load_permissions_for(user):
   # Now aggregate permissions resulting from these roles
   for implied_context_id, implied_rolenames \
       in implied_context_to_implied_roles.items():
+    if implied_context_id is None:
+      continue
     for implied_rolename in implied_rolenames:
       implied_role = all_implied_roles_by_name[implied_rolename]
       collect_permissions(

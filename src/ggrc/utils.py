@@ -214,4 +214,18 @@ class BenchmarkContextManager(object):
     end = time.time()
     current_app.logger.info("{:.4f} {}".format(end - self.start, self.message))
 
+
+class WithNop(object):
+
+  def __init__(self, message):
+    pass
+
+  def __enter__(self):
+    pass
+
+  def __exit__(self, exc_type, exc_value, exc_trace):
+    pass
+
+
 benchmark = BenchmarkContextManager
+with_nop = WithNop

@@ -161,6 +161,8 @@ class QueryHelper(object):
       elif exp["op"]["name"] == "text_search":
         text_exp = None
         for field in object_query.get("fields", []):
+          if not hasattr(object_class, field):
+            continue
           text_exp = or_(text_exp, getattr(object_class, field)
                          .ilike("%{}%".format(exp["text"])))
         return text_exp

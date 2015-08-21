@@ -342,8 +342,15 @@
     init: function() {
       var that = this;
       this._super.apply(this, arguments);
+      this.validateNonBlank("title");
       this.validateNonBlank("contact");
       this.validateContact(["_transient.contact", "contact"]);
+
+      this.validate(['start_date', 'end_date'], function (newVal, prop) {
+        if (!(this.start_date && this.end_date)) {
+          return "Start and/or end date is invalid";
+        }
+      });
 
       this.bind("updated", function(ev, instance) {
         if (instance instanceof that) {
