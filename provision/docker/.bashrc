@@ -77,7 +77,7 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
 fi
 
 export NODE_PATH=/usr/local/lib/node_modules/
-export PATH="/ggrc/bin:$PATH"
+export PATH="/ggrc/bin:/ggrc-dev/opt/google_appengine:/ggrc-dev/opt/dev_virtualenv:$PATH"
 export PYTHONPATH="/ggrc/src:/ggrc-dev/google_appengine"
 export DEV_PREFIX="/ggrc-dev"
 export GGRC_SETTINGS_MODULE="development ggrc_basic_permissions.settings.development ggrc_gdrive_integration.settings.development ggrc_risk_assessments.settings.development ggrc_workflows.settings.development"

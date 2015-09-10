@@ -15,8 +15,7 @@ RUN add-apt-repository -y ppa:chris-lea/node.js \
  && cd /ggrc \
  && pip install -r src/requirements.txt \
  && pip install -r src/dev-requirements.txt \
- && pip install google-api-python-client \
- && pip install webob \
+ && pip install google-api-python-client webob virtualenv\
  && gem install sass --version "=3.2.13" \
  && gem install compass --version "=0.12.2" \
  && npm install karma karma-jasmine jasmine-core phantomjs karma-chrome-launcher \
