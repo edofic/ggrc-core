@@ -17,7 +17,7 @@
       </label>
       <ul>
         {{#each people}}
-          {{^if_equals person_state "deleted"}}
+          {{^if_equals person.person_state "deleted"}}
           <li>
             {{#if editable}}
             <span class="file-controls">
@@ -25,7 +25,7 @@
               {{! <a href="javascript://"><i class="grcicon-edit"></i></a> }}
             </span>
             {{/if}}
-            <a href="javascript://">{{name}}</a>
+            <a href="javascript://">{{person.name}}</a>
           </li>
           {{/if_equals}}
         {{/each}}

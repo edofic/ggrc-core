@@ -47,7 +47,8 @@
           id: instance.id
         };
         this.viewModel.attr("groups").each(function (group, type) {
-          group.each(function (person) {
+          group.each(function (entry) {
+            var person = entry.person;
             var state = person.person_state,
                 states = {
                   "added": "save",

@@ -466,22 +466,15 @@ can.Model.Cacheable("CMS.Models.Request", {
     return comments;
   },
   get_assignees: function() {
-    console.log(new Error().stack);
     var assignees = {};
     var rq_rel = new RefreshQueue();
     var rq_person = new RefreshQueue();
     this.related_destinations.each(rq_rel.enqueue.bind(rq_rel));
     this.related_sources.each(rq_rel.enqueue.bind(rq_rel));
-    var store = function(type, person) {
-        if (!assignees[type]) {
-          assignees[type] = [];
-        }
-        assignees[type].push(person);
-        rq_person.enqueue(person);
-    }
     return rq_rel.trigger().then(function(relationships) {
       _.each(relationships, function(r) {
         if (r.attrs && r.attrs.AssigneeType) {
+          var type = r.attrs.AssigneeType;
           var person = undefined;
           if (r.source.type === "Person") {
             person = r.source;
@@ -489,16 +482,24 @@ can.Model.Cacheable("CMS.Models.Request", {
             person = r.destination;
           }
           if (person !== undefined) {
-            store(r.attrs.AssigneeType, person);
+            if (!assignees[type]) {
+              assignees[type] = [];
+            }
+            assignees[type].push({
+              "relationship": r,
+              "person": person
+            });
+            rq_person.enqueue(person);
           }
         }
       });
       return rq_person.trigger().then(function() {
-        return _.mapValues(assignees, function(people, type) {
-          return _.map(people, function(person) {
-            return person.reify();
+        _.each(assignees, function(entries, type) {
+          _.each(entries, function(entry) {
+            entry.person = entry.person.reify();
           });
         });
+        return assignees;
       });
     });
   }
