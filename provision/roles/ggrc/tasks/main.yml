@@ -50,7 +50,6 @@
     name: "{{ item.name }}"
     global: yes
     state: present
-    registry: http://registry.npmjs.org/
 
 - name: install local npm modules
   sudo: no
@@ -58,7 +57,6 @@
   npm:
     name: "{{ item.name }}"
     state: present
-    registry: http://registry.npmjs.org/
     path: "/vagrant/node_modules"
 
 - name: run make appengine
