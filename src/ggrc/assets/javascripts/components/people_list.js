@@ -32,6 +32,11 @@
           assignees = _.mapKeys(assignees, function (val, key) {
             return key.toLowerCase();
           });
+          _.each(["verifier", "assignee", "requester"], function(type) {
+            if (!assignees[type]) {
+              assignees[type] = [];
+            }
+          });
           this.viewModel.attr("groups", _.mapValues(assignees, function (users) {
             return _.map(users, function (user) {
               user.person.relationship_id = user.relationship.id;
@@ -72,8 +77,14 @@
           group.each(function (person) {
             var action = person.person_state,
                 states = {
-                  "added": "save",
-                  "deleted": "destroy"
+                  "added": function(r) {
+                    return r.save()
+                  },
+                  "deleted": function(r) {
+                    return r.refresh().then(function(r) {
+                      return r.destroy();
+                    });
+                  },
                 },
                 model;
             if (!_.contains(_.keys(states), action)) {
@@ -81,7 +92,7 @@
             }
             model = this.getRelationship(person, destination, type, action);
             console.log("MODEL", model);
-            relationships.push(model[states[action]]());
+            relationships.push(states[action](model));
           }, this);
         }, this);
 
