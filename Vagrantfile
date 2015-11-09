@@ -7,10 +7,7 @@
 # Maintained By: dan@reciprocitylabs.com
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "ggrc"
-
-  # Fetch the box if it doesn't already exist.
-  config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+  config.vm.box = "ubuntu/trusty64"
 
   # If you are installing repeatedly, you can download the box from the above
   # link and use this local `box_url` instead:
