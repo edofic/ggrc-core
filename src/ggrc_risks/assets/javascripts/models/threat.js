@@ -42,6 +42,7 @@
     init: function () {
       this._super && this._super.apply(this, arguments);
       this.validatePresenceOf("title");
+      this.validatePresenceOf("owners");
     }
   }, {});
 })(window.can);

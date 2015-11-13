@@ -35,18 +35,17 @@
       </div>
     </div>
 
-    <div class="span6 hide-wrap hidable">
-      <div class="row-fluid inner-hide">
-        <div class="span12 hidable">
-          {{#using owner=instance.owners.0 model_singular=model.model_singular}}
+    <div class="span6">
+      <div class="row-fluid {{#instance.computed_errors.owners}}field-failure{{/instance.computed_errors.owners}}">
+        {{#using owner=instance.owners.0 model_singular='Risk'}}
           <label>
             Owner
-            <i class="grcicon-help-black" rel="tooltip" title="This is the person in charge of this {{model_singular}}."></i>
-            <a href="javascript://" class="field-hide" tabindex="-1">hide</a>
+            <span class="required">*</span>
+            <i class="grcicon-help-black" rel="tooltip" title="This is the person in charge of this Risk."></i>
           </label>
-          <input tabindex="3" class="input-block-level" name="owners.0.email" data-lookup="Person" data-list="true" placeholder="Enter email address" type="text" value="{{firstexist owner.email ''}}" />
-          {{/using}}
-        </div>
+          <input tabindex="3" class="input-block-level" name="owners.0.email" data-lookup="Person" placeholder="Enter email address" type="text" value="{{firstnonempty owner.email}}" />
+        {{#instance.computed_errors.owners}}<label class="help-inline warning">{{this}}</label>{{/instance.computed_errors.owners}}
+        {{/using}}
       </div>
 
       <div class="row-fluid inner-hide">
