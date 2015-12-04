@@ -56,4 +56,8 @@ permissions = {
         "InterviewResponse",
         "PopulationSampleResponse",
     ],
+    "map_to": [
+        "Audit",
+        "Program",
+    ]
 }

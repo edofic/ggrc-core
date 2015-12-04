@@ -270,6 +270,24 @@ class DefaultUserPermissions(UserPermissions):
     """Whether or not the user is allowed to delete the given instance"""
     return self._is_allowed_for(instance, 'delete')
 
+  def is_allowed_map_to(self, resource_type, resource_id, context_id):
+    """Whether or not the user is allowed to map to a resource of the
+    specified type in the context."""
+    can_map = self._is_allowed(Permission('map_to', resource_type,
+                                          resource_id, context_id))
+    if can_map:
+      return True
+    else:
+      return self.is_allowed_update(resource_type, resource_id, context_id)
+
+  def is_allowed_map_to_for(self, instance):
+    """Whether or not the user is allowed to map to the given instance"""
+    can_map = self._is_allowed_for(instance, 'map_to')
+    if can_map:
+      return True
+    else:
+      return self.is_allowed_update_for(instance)
+
   def _get_resources_for(self, action, resource_type):
     """Get resources resources (object ids) for a given action and resource_type"""
     permissions = self._permissions()

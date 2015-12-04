@@ -611,7 +611,7 @@ class ParentColumnHandler(ColumnHandler):
                      object_type=self.parent._inflector.human_singular.title(),
                      slug=slug)
       return None
-    if not permissions.is_allowed_update_for(obj):
+    if not permissions.is_allowed_map_to_for(obj):
       self.add_error(errors.MAPPING_PERMISSION_ERROR,
                      object_type=obj.type, slug=slug)
       return None
