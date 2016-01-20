@@ -14,20 +14,13 @@
 
 // Required external stylesheets
 
-//@import "jquery-ui";
+@import "~bootstrap-sass/assets/stylesheets/_bootstrap.scss";
+// @import "bootstrap-responsive";
 
-
-// Whole file is commented. Leaving it for now. WIll be removed later.
-// @import "bootstrap-setup";
-
-@import "bootstrap-sass";
-@import "bootstrap-responsive";
-
-@import "compass/css3";
 //@import "bootstrap-wysihtml5-0.0.2";
 
 $fa-font-path: "/static/fonts";
-@import "font-awesome";
+@import "~font-awesome/scss/font-awesome.scss";
 
 @import "colors";
 @import "mixins";
