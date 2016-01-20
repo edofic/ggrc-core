@@ -4,11 +4,9 @@
 # Maintained By: goran@reciprocitylabs.com
 
 ---
-
-- name: add the node.js PPA
-  apt_repository: repo="ppa:chris-lea/node.js"
+- name: Add NodeJS repository
+  command: bash -c "curl -sL https://deb.nodesource.com/setup_5.x | sudo -E bash -"
   tags: nodejs
-  sudo: yes
 
 - name: update apt
   sudo: yes

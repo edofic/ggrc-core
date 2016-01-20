@@ -15,7 +15,6 @@ ggrc_packages:
   - name: python-imaging
   - name: sqlite3
   - name: python-dev
-  - name: ruby
   - name: nodejs
 
 ggrc_development_directories:
@@ -31,18 +30,18 @@ ggrc_global_npm_modules:
   - name: jasmine-core
   - name: mkdirp
   - name: bower
-  - name: eslint
-  - name: eslint-config-google
+  - name: webpack
 
 ggrc_local_npm_modules:
   - name: karma
   - name: karma-jasmine
-
-ggrc_gems:
-  - name: 'sass'
-    version: '3.2.13'
-  - name: 'compass'
-    version: '0.12.2'
+  - name: eslint
+  - name: eslint-config-google
+  - name: node-sass
+  - name: sass-loader
+  - name: css-loader
+  - name: extract-text-webpack-plugin
+  - name: lodash
 
 ggrc_databases:
   - name: ggrcdev
