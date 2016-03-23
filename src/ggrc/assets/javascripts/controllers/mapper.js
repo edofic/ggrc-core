@@ -6,6 +6,10 @@
 */
 
 (function (can, $) {
+  var selectors = _.map(['unified-mapper', 'unified-search'], function (val) {
+    return '[data-toggle="' + val + '"]';
+  });
+
   can.Control('GGRC.Controllers.MapperModal', {
     defaults: {
       component: GGRC.mustache_path + '/modals/mapper/component.mustache'
@@ -38,6 +42,29 @@
       .bind('click', function () {
         this.scope.attr('show', true);
       }.bind(this));
+  $('body').on('click', selectors.join(', '), function (ev) {
+    var btn = $(ev.currentTarget);
+    var data = {};
+    var isSearch;
+    ev.preventDefault();
+
+    _.each(btn.data(), function (val, key) {
+      data[can.camelCaseToUnderscore(key)] = val;
+    });
+
+    if (data.tooltip) {
+      data.tooltip.hide();
     }
+    isSearch = /unified-search/ig.test(data.toggle);
+    GGRC.Controllers.MapperModal.launch(btn, _.extend({
+      object: btn.data('join-object-type'),
+      type: btn.data('join-option-type'),
+      'join-object-id': btn.data('join-object-id'),
+      'search-only': isSearch,
+      template: {
+        title: isSearch ?
+          '/static/mustache/base_objects/modal/search_title.mustache' : ''
+      }
+    }, data));
   });
 })(window.can, window.can.$);
