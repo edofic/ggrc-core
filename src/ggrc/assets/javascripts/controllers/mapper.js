@@ -31,17 +31,6 @@
     }
   });
 
-  can.Component.extend({
-    tag: 'lazy-openclose',
-    scope: {
-      show: false
-    },
-    content: '<content/>',
-    init: function () {
-      this._control.element.closest('.tree-item').find('.openclose')
-      .bind('click', function () {
-        this.scope.attr('show', true);
-      }.bind(this));
   $('body').on('click', selectors.join(', '), function (ev) {
     var btn = $(ev.currentTarget);
     var data = {};
