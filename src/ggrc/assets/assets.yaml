@@ -122,8 +122,11 @@ dashboard-js-files:
   - components/paginate.js
   - components/tabs.js
   - components/assessment_attributes.js
+  - components/lazy_open_close.js
   - components/object_history/object_history.js
   - components/unified_mapper/mapper.js
+  - components/unified_mapper/mapper_results.js
+  - components/unified_mapper/mapper_checkbox.js
   #- d3.v2.js
   #- related_graph.js
 
@@ -224,6 +227,7 @@ dashboard-js-template-files:
   - issues/modal_content.mustache
   - issues/info.mustache
   - issues/remediation_plan.mustache
+  - components/unified_mapper/mapper_results.mustache
   - components/object_history/object_history.mustache
   - custom_attributes/modal_content.mustache
   - custom_attributes/info.mustache
