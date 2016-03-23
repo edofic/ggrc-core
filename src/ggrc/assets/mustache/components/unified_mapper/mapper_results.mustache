@@ -1,0 +1,51 @@
+<div class="filter-actions wrap-modal-spacing">
+  <div class="row-fluid">
+    <div class="span12">
+      <a class="btn btn-small btn-info pull-right modalSearchButton {{#loading_or_saving}}disabled{{/loading_or_saving}}" href="javascript://">
+        Search
+      </a>
+    </div>
+  </div>
+</div>
+<div class="results modal-custom-spacing">
+  <div class="results-num">
+    <div class="row-fluid">
+      <div class="span9">
+        <strong>
+          {{ entries.length }} Objects found
+        </strong>
+      </div>
+      <div class="span3">
+        {{^if mapper.search_only}}
+        <div class="pull-right check-all">
+            <a
+              href="#"
+              rel="tooltip"
+              class="object-check-all
+                {{#if_helpers '\
+                  #if' loading_or_saving '\
+                  or #if' mapper.all_selected}}disabled{{/if}}"
+              data-placement="right"
+              data-original-title="Mapping more than 100 items may take a long time to process. Please consider refining your search criteria."
+              >Select all</a>
+          </label>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+  </div>
+  <div class="results-wrap">
+    <ul class="result-tree tree-structure new-tree">
+      {{#if mapper.search_only}}
+        {{> /static/mustache/search/advanced_search_option_items.mustache}}
+      {{else}}
+        {{> /static/mustache/selectors/object_selector_option_items.mustache}}
+      {{/if}}
+    </ul>
+    {{#if page_loading}}
+      <div class="row-fluid clearfix">
+        <span {{attach_spinner '{ "radius": 4, "length": 7, "width": 2 }'}} style="margin: 20px auto; display: block; width: 40px;"></span>
+      </div>
+    {{/if}}
+  </div>
+</div>
