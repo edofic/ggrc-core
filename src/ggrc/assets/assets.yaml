@@ -123,6 +123,7 @@ dashboard-js-files:
   - components/tabs.js
   - components/assessment_attributes.js
   - components/object_history/object_history.js
+  - components/unified_mapper/mapper.js
   #- d3.v2.js
   #- related_graph.js
 
