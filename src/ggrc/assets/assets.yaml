@@ -115,7 +115,6 @@ dashboard-js-files:
   - components/relevant_filters.js
   - components/csv/export.js
   - components/csv/import.js
-  - components/mapper.js
   - components/people_list.js
   - components/mapped_tree_view.js
   - components/assessment_generator.js
