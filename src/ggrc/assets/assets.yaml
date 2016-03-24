@@ -111,6 +111,9 @@ dashboard-js-files:
   - apps/quick_search.js
   - apps/business_objects.js
   - apps/custom_attributes.js
+  - components/unified_mapper/mapper.js
+  - components/unified_mapper/mapper_results.js
+  - components/unified_mapper/mapper_checkbox.js
   - components/link_to_clipboard.js
   - components/relevant_filters.js
   - components/csv/export.js
@@ -123,9 +126,7 @@ dashboard-js-files:
   - components/assessment_attributes.js
   - components/lazy_open_close.js
   - components/object_history/object_history.js
-  - components/unified_mapper/mapper.js
-  - components/unified_mapper/mapper_results.js
-  - components/unified_mapper/mapper_checkbox.js
+  - components/assessment_templates/assessment_templates.js
   #- d3.v2.js
   #- related_graph.js
 
@@ -227,6 +228,7 @@ dashboard-js-template-files:
   - issues/info.mustache
   - issues/remediation_plan.mustache
   - components/unified_mapper/mapper_results.mustache
+  - components/assessment_templates/assessment_templates.mustache
   - components/object_history/object_history.mustache
   - custom_attributes/modal_content.mustache
   - custom_attributes/info.mustache

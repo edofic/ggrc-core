@@ -21,6 +21,7 @@ can.Component.extend({
         'join-object-id': this.scope.audit.id,
         'join-mapping': 'program_controls',
         getList: true,
+        useTemplates: true,
         relevantTo: [{
           type: instance.program.type,
           id: instance.program.id
@@ -38,7 +39,7 @@ can.Component.extend({
 
       que.enqueue(list).trigger().then(function (items) {
         var results = _.map(items, function (item) {
-          return this.generateModel(item);
+          return this.generateModel(item, options.assessmentTemplate);
         }.bind(this));
         this._results = results;
         $.when.apply($, results)
@@ -49,7 +50,7 @@ can.Component.extend({
           .fail(this.notify.bind(this));
       }.bind(this));
     },
-    generateModel: function (object) {
+    generateModel: function (object, template) {
       var title = object.title + ' assessment for ' + this.scope.audit.title;
       var data = {
         audit: this.scope.audit,
@@ -58,10 +59,50 @@ can.Component.extend({
         title: title,
         owners: [CMS.Models.Person.findInCacheById(GGRC.current_user.id)]
       };
+      if (template) {
+        data.custom_attributes = this.getTemplate(template, object);
+      }
       if (object.test_plan) {
         data.test_plan = object.test_plan;
       }
       return new CMS.Models.Assessment(data).save();
+    },
+    getTemplate: function (id, object) {
+      var model = CMS.Models.AssessmentTemplate.findInCacheById(id);
+      var people;
+      var types = {
+        'Object Owners': function () {
+          return this.object_owners;
+        },
+        'Audit Lead': this.scope.audit.contact,
+        'Object Contact': function () {
+          return this.contact;
+        },
+        'Primary Assessor': '',
+        'Secondary Assessor': ''
+      };
+
+      function getTypes(prop) {
+        var type;
+        if (_.isArray(prop)) {
+          return prop;
+        }
+        type = types[prop];
+        if (_.isFunction(type)) {
+          return type.call(object);
+        }
+        return type;
+      }
+
+      if (!model) {
+        return;
+      }
+      people = model.default_people;
+
+      return {
+        assessors: getTypes(people.assessors),
+        verifiers: getTypes(people.verifiers)
+      };
     },
     notify: function () {
       var success;

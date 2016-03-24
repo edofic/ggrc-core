@@ -21,6 +21,7 @@
     page_loading: false,
     is_saving: false,
     all_selected: false,
+    assessmentTemplate: '',
     search_only: false,
     join_object_id: '',
     selected: new can.List(),
@@ -164,7 +165,8 @@
         mapper: new MapperModel(_.extend(data, {
           relevantTo: parentScope.attr('relevantTo'),
           callback: parentScope.attr('callback'),
-          getList: parentScope.attr('getList')
+          getList: parentScope.attr('getList'),
+          useTemplates: parentScope.attr('useTemplates')
         })),
         template: parentScope.attr('template')
       };
@@ -245,6 +247,7 @@
         var callback = this.scope.attr('mapper.callback');
         var type = this.scope.attr('mapper.type');
         var object = this.scope.attr('mapper.object');
+        var assessmentTemplate = this.scope.attr('mapper.assessmentTemplate');
         var isAllObject = type === 'AllObject';
         var instance = CMS.Models[object].findInCacheById(
           this.scope.attr('mapper.join_object_id'));
@@ -264,6 +267,7 @@
             type: type,
             target: object,
             instance: instance,
+            assessmentTemplate: assessmentTemplate,
             context: this
           });
         }
