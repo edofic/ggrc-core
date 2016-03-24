@@ -210,21 +210,11 @@
         } else {
           model = CMS.Models.Relationship.get_relationship(person, instance);
           if (!model) {
-            model = new CMS.Models.Relationship({
-              attrs: {
-                AssigneeType: role
-              },
-              source: {
-                href: person.href,
-                type: person.type,
-                id: person.id
-              },
-              context: instance.context,
-              destination: {
-                href: instance.href,
-                type: instance.type,
-                id: instance.id
-              }
+            model = CMS.Models.Relationship.createAssignee({
+              role: role,
+              source: person,
+              destination: instance,
+              context: instance.context
             });
             model = $.Deferred().resolve(model);
           } else {

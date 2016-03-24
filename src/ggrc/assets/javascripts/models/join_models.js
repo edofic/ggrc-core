@@ -100,64 +100,80 @@ can.Model.Cacheable("can.Model.Join", {
     }
 });
 
-can.Model.Join("CMS.Models.Relationship", {
-    root_object: "relationship"
-  , root_collection: "relationships"
-  , attributes : {
-      context : "CMS.Models.Context.stub"
-    , modified_by : "CMS.Models.Person.stub"
-    , source : "CMS.Models.get_stub"
-    , destination : "CMS.Models.get_stub"
-  }
-  , join_keys : {
-    source : can.Model.Cacheable
-    , destination : can.Model.Cacheable
-  }
-  , defaults : {
-      source : null
-    , destination : null
-  }
-  , findAll: "GET /api/relationships"
-  , create: "POST /api/relationships"
-  , update: "PUT /api/relationships/{id}"
-  , destroy: "DELETE /api/relationships/{id}"
-  , get_relationship: function (source, destination) {
-    return _.first(_.filter(CMS.Models.Relationship.cache, function (model) {
-      if (!model.source || !model.destination) {
-        return false;
-      }
-      return model.source.type === source.type &&
-              model.source.id === source.id &&
-              model.destination.type === destination.type &&
-              model.destination.id === destination.id ||
-              model.source.type === destination.type &&
-              model.source.id === destination.id &&
-              model.destination.type === source.type &&
-              model.destination.id === source.id;
+  can.Model.Join('CMS.Models.Relationship', {
+    root_object: 'relationship',
+    root_collection: 'relationships',
+    attributes: {
+      context: 'CMS.Models.Context.stub',
+      modified_by: 'CMS.Models.Person.stub',
+      source: 'CMS.Models.get_stub',
+      destination: 'CMS.Models.get_stub'
+    },
+    join_keys: {
+      source: can.Model.Cacheable,
+      destination: can.Model.Cacheable
+    },
+    defaults: {
+      source: null,
+      destination: null
+    },
+    findAll: 'GET /api/relationships',
+    create: 'POST /api/relationships',
+    update: 'PUT /api/relationships/{id}',
+    destroy: 'DELETE /api/relationships/{id}',
+    createAssignee: function (options) {
+      return new this({
+        attrs: {
+          AssigneeType: options.role
+        },
+        source: {
+          href: options.source.href,
+          type: options.source.type,
+          id: options.source.id
+        },
+        context: options.context,
+        destination: {
+          href: options.destination.href,
+          type: options.destination.type,
+          id: options.destination.id
+        }
+      });
+    },
+    get_relationship: function (source, destination) {
+      return _.first(_.filter(CMS.Models.Relationship.cache, function (model) {
+        if (!model.source || !model.destination) {
+          return false;
+        }
+        return model.source.type === source.type &&
+                model.source.id === source.id &&
+                model.destination.type === destination.type &&
+                model.destination.id === destination.id ||
+                model.source.type === destination.type &&
+                model.source.id === destination.id &&
+                model.destination.type === source.type &&
+                model.destination.id === source.id;
       }));
-  }
-}, {
-  reinit: function() {
-    var that = this;
-
-    this.attr("source", CMS.Models.get_instance(
-      this.source_type
-        || (this.source
-            && (this.source.constructor
-                && this.source.constructor.shortName
-                || (!this.source.selfLink && this.source.type)))
-      , this.source_id || (this.source && this.source.id)
-      , this.source) || this.source);
-    this.attr("destination", CMS.Models.get_instance(
-      this.destination_type
-        || (this.destination
-            && (this.destination.constructor
-                && this.destination.constructor.shortName
-                || (!this.source.selfLink && this.destination.type)))
-      , this.destination_id || (this.destination && this.destination.id)
-      , this.destination) || this.destination);
-  }
-});
+    }
+  }, {
+    reinit: function () {
+      this.attr('source', CMS.Models.get_instance(
+        this.source_type ||
+          (this.source &&
+            (this.source.constructor &&
+              this.source.constructor.shortName ||
+              (!this.source.selfLink && this.source.type))),
+          this.source_id || (this.source && this.source.id),
+          this.source) || this.source);
+      this.attr('destination', CMS.Models.get_instance(
+        this.destination_type ||
+          (this.destination &&
+            (this.destination.constructor &&
+              this.destination.constructor.shortName ||
+              (!this.source.selfLink && this.destination.type))),
+        this.destination_id || (this.destination && this.destination.id),
+        this.destination) || this.destination);
+    }
+  });
 
 can.Model.Join("CMS.Models.UserRole", {
   root_object : "user_role"
