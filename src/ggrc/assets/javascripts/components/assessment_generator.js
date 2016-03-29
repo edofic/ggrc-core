@@ -39,16 +39,35 @@ can.Component.extend({
 
       que.enqueue(list).trigger().then(function (items) {
         var results = _.map(items, function (item) {
-          return this.generateModel(item, options.assessmentTemplate);
+          return this.generateModel(item);
         }.bind(this));
         this._results = results;
+
         $.when.apply($, results)
+          .then(this.generateCustomAttributes(this, options.assessmentTemplate))
           .then(function () {
             options.context.closeModal();
           })
           .done(this.notify.bind(this))
           .fail(this.notify.bind(this));
       }.bind(this));
+    },
+    generateCustomAttributes: function (context, template) {
+      return function (results) {
+        var people = _.map(results, function (assessment) {
+          var templates = this.getTemplatePeople(template, assessment.object);
+          return _.map(templates, function (person, role) {
+            return CMS.Models.Relationship.createAssignee({
+              role: role,
+              source: person,
+              destination: assessment,
+              context: assessment.context
+            }).save();
+          });
+        }.bind(this));
+
+        return $.when.apply($, people);
+      }.bind(context);
     },
     generateModel: function (object, template) {
       var title = object.title + ' assessment for ' + this.scope.audit.title;
@@ -59,15 +78,12 @@ can.Component.extend({
         title: title,
         owners: [CMS.Models.Person.findInCacheById(GGRC.current_user.id)]
       };
-      if (template) {
-        data.custom_attributes = this.getTemplate(template, object);
-      }
       if (object.test_plan) {
         data.test_plan = object.test_plan;
       }
       return new CMS.Models.Assessment(data).save();
     },
-    getTemplate: function (id, object) {
+    getTemplatePeople: function (id, object) {
       var model = CMS.Models.AssessmentTemplate.findInCacheById(id);
       var people;
       var types = {
@@ -78,8 +94,12 @@ can.Component.extend({
         'Object Contact': function () {
           return this.contact;
         },
-        'Primary Assessor': '',
-        'Secondary Assessor': ''
+        'Primary Assessor': function () {
+          return this.principal_assessor;
+        },
+        'Secondary Assessor': function () {
+          return this.secondary_assessor;
+        }
       };
 
       function getTypes(prop) {
@@ -100,8 +120,8 @@ can.Component.extend({
       people = model.default_people;
 
       return {
-        assessors: getTypes(people.assessors),
-        verifiers: getTypes(people.verifiers)
+        Assessor: getTypes(people.assessors),
+        Verifier: getTypes(people.verifiers)
       };
     },
     notify: function () {
