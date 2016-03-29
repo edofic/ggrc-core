@@ -16,8 +16,8 @@ Many organizations operate in multiple jurisdictions worldwide, each of which ha
 The GGRC project intends to provide an open source solution for managing some of these common problems.  The application provides a common system of record for information in this domain.   It provides the ability to capture the relationships and to understand how the pieces fit together.  It also provides workflow capability to manage processes in this domain.
 
 
-Migrated from [Google](https://code.google.com/p/compliance-management/)
-[Code](https://code.google.com/p/ggrc-core).
+Migrated from [Google](https://code.google.com/archive/p/compliance-management)
+[Code](https://code.google.com/archive/p/ggrc-core).
 
 
 ## Requirements
@@ -28,8 +28,8 @@ environment:
 |               Prerequisite               |               Description                |
 |------------------------------------------|------------------------------------------|
 |[VirtualBox](https://www.virtualbox.org/) | Oracle VirtualBox Virtual Machine player |
-|[Vagrant](http://www.vagrantup.com/)      | Handy scriptable VM management           |
-|[Ansible](http://www.ansible.com/home)    | Provisioning and deployment tool         |
+|[Vagrant](https://www.vagrantup.com/)      | Handy scriptable VM management           |
+|[Ansible](https://www.ansible.com/)    | Provisioning and deployment tool         |
 
 Or alternatively (see Quickstart with docker)
 

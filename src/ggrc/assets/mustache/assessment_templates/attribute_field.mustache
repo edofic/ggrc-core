@@ -5,9 +5,10 @@
   Maintained By: ivan@reciprocitylabs.com
 }}
 
+{{^field._pending_delete}}
 <li class="row-fluid">
   <div class="span-custom2-and-half">{{field.title}}</div>
-  <div class="span-custom1-and-half">{{field.type}}</div>
+  <div class="span-custom1-and-half">{{field.attribute_type}}</div>
   <div class="span2">
     {{#attrs}}
       <span class="block">{{.}}</span>
@@ -18,18 +19,21 @@
       <input can-value="field.opts.attachment-{{.}}" type="checkbox">
     {{/attrs}}
   </div>
-  <div class="span-custom1-and-half centered checkbox-wrap">
+  <div class="span1 centered checkbox-wrap">
     {{#attrs}}
       <input can-value="field.opts.comment-{{.}}" type="checkbox">
     {{/attrs}}
   </div>
-  <div class="span-custom1-and-half centered checkbox-wrap">
-    <input type="checkbox" can-value="field.opts.mandatory-{{title}}">
+  <div class="span1 centered checkbox-wrap">
+    <input type="checkbox" can-value="field.mandatory">
   </div>
-  <div class="span-custom1-and-half">
+  <div class="span2">
     <div class="pull-right">
       {{! <a href="#"><i class="fa fa-pencil-square-o"></i></a> }}
+      {{#field}}
       <a can-click="removeField" href="#"><i class="fa fa-trash"></i></a>
+      {{/field}}
     </div>
   </div>
 </li>
+{{/field._pending_delete}}

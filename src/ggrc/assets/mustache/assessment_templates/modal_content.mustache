@@ -10,6 +10,32 @@
     {{> /static/mustache/base_objects/form_restore.mustache}}
 
     <div class="row-fluid">
+      <div class="span6 {{#instance.computed_errors.title}}field-failure{{/instance.computed_errors.title}}">
+        <label>
+          Title
+          <span class="required">*</span>
+          <i
+            class="fa fa-question-circle"
+            rel="tooltip"
+            title="Give new {{model.model_plural}} a name that's easy to search for and indicates the main goals of this {{model.model_singular}}."
+            ></i>
+        </label>
+
+        <input
+          data-id="title_txtbx" tabindex="1" class="input-block-level"
+          placeholder="Enter Title"
+          name="title"
+          type="text"
+          can-value="instance.title"
+          autofocus>
+
+        {{#instance.computed_errors.title}}
+          <label class="help-inline warning">{{this}}</label>
+        {{/instance.computed_errors.title}}
+      </div>
+    </div>
+
+    <div class="row-fluid">
       <div class="span6">
         <label>Audit</label>
         <strong>{{object_params.audit_title}}</strong>
@@ -134,28 +160,10 @@
     </div>
 
     <div class="custom-attr-wrap define-attr">
-
-      <div class="row-fluid">
-        <div class="span12">
-          <div class="info-expand">
-            <a class="show-hidden-fields info-show-hide" href="javascript://">
-              <span class="out">
-                <i class="fa fa-caret-right"></i>
-                Custom attributes
-              </span>
-              <span class="in">
-                <i class="fa fa-caret-down"></i>
-                Custom attributes
-              </span>
-            </a>
-          </div>
-        </div>
-      </div>
-
       <div class="hidden-fields-area">
         <div class="row-fluid wrap-row">
           <div class="custom-attr-list span12">
-            <assessment-template-attributes>
+            <assessment-template-attributes fields="instance.custom_attribute_definitions">
               <div class="attr-titles">
                 <ul>
                   <li class="row-fluid">
@@ -171,13 +179,13 @@
                     <div class="span2 centered">
                       <h6>Attachment required</h6>
                     </div>
-                    <div class="span-custom1-and-half centered">
+                    <div class="span1 centered">
                       <h6>Comment required</h6>
                     </div>
-                    <div class="span-custom1-and-half centered">
+                    <div class="span1 centered">
                       <h6>Mandatory</h6>
                     </div>
-                    <div class="span-custom1-and-half">
+                    <div class="span2">
                       &nbsp;
                     </div>
                   </li>

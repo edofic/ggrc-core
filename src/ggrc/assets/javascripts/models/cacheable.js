@@ -731,14 +731,15 @@ can.Model("can.Model.Cacheable", {
         }
       }
     });
-  }
-  , load_custom_attribute_definitions: function custom_attribute_definitions() {
+  },
+  load_custom_attribute_definitions: function () {
     var definitions;
     if (this.attr('custom_attribute_definitions')) {
       return;
     }
-    definitions = can.map(GGRC.custom_attr_defs, function(def) {
-      if (def.definition_type && def.definition_type === this.constructor.table_singular) {
+    definitions = can.map(GGRC.custom_attr_defs, function (def) {
+      var idCheck = !def.definition_id || def.definition_id === this.id;
+      if (idCheck && def.definition_type === this.constructor.table_singular) {
         return def;
       }
     }.bind(this));
@@ -757,7 +758,8 @@ can.Model("can.Model.Cacheable", {
       }
     }
     can.each(this.custom_attribute_definitions, function (definition) {
-      if (definition.mandatory) {
+
+      if (definition.mandatory && !this.ignore_ca_errors) {
         if (definition.attribute_type === 'Checkbox') {
           self.class.validate('custom_attributes.' + definition.id,
               function (val) {
@@ -767,7 +769,7 @@ can.Model("can.Model.Cacheable", {
           self.class.validateNonBlank('custom_attributes.' + definition.id);
         }
       }
-    });
+    }.bind(this));
     if (!this.custom_attributes) {
       this.attr('custom_attributes', new can.Map());
       can.each(this.custom_attribute_values, function (value) {

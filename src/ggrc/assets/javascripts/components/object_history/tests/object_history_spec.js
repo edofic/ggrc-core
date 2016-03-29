@@ -25,8 +25,8 @@ describe('GGRC.Components.objectHistory', function () {
       expect(scope.instance).toBeNull();
     });
 
-    it('sets the change history to an empty can.List', function () {
-      expect(scope.changeHistory instanceof can.List).toBe(true);
+    it('sets the change history to an empty array', function () {
+      expect(Array.isArray(scope.changeHistory)).toBe(true);
       expect(scope.changeHistory.length).toEqual(0);
     });
   });
@@ -192,9 +192,9 @@ describe('GGRC.Components.objectHistory', function () {
     it('computes diff objects for all successive Revision pairs', function () {
       var result;
 
-      var revisions = new can.List([
+      var revisions = [
         {id: 10}, {id: 20}, {id: 30}
-      ]);
+      ];
 
       var diff = {
         madeBy: 'John',
@@ -215,9 +215,8 @@ describe('GGRC.Components.objectHistory', function () {
 
       expect(componentInst._objectChangeDiff.calls.count()).toEqual(2);
 
-      // we call .attr() to get a plain object needed for the comparison
-      expect(result[0].attr()).toEqual(diff);
-      expect(result[1].attr()).toEqual(diff2);
+      expect(result[0]).toEqual(diff);
+      expect(result[1]).toEqual(diff2);
     });
 
     it('omits the diff objects with an empty changes list from the result',
@@ -261,12 +260,13 @@ describe('GGRC.Components.objectHistory', function () {
     it('includes the modification time in the result', function () {
       var rev1 = {
         updated_at: '2016-01-24T10:05:42',
-        modified_by: {id: 1},
+        modified_by: 'User 1',
         content: {}
       };
       var rev2 = {
         updated_at: '2016-01-30T08:15:11',
-        modified_by: {id: 1}
+        modified_by: 'User 1',
+        content: {}
       };
 
       var result = method(rev1, rev2);
@@ -277,12 +277,12 @@ describe('GGRC.Components.objectHistory', function () {
     it('includes the author of the change(s) in the result', function () {
       var rev1 = {
         updated_at: '2016-01-24T10:05:42',
-        modified_by: {id: 1},
+        modified_by: 'User 7',
         content: {}
       };
       var rev2 = {
         updated_at: '2016-01-30T08:15:11',
-        modified_by: {id: 7},
+        modified_by: 'User 7',
         content: {}
       };
 
@@ -301,12 +301,15 @@ describe('GGRC.Components.objectHistory', function () {
       });
 
       it('uses the fields\' display names in the result', function () {
-        var actual;
         var expectedChangeList;
 
         var rev1 = {
           updated_at: '2016-01-25T16:36:29',
-          modified_by: {id: 5},
+          modified_by: {
+            reify: function () {
+              return "User 5";
+            }
+          },
           resource_type: 'Audit',
           content: {
             title: 'Audit 1.0'
@@ -314,29 +317,36 @@ describe('GGRC.Components.objectHistory', function () {
         };
         var rev2 = {
           updated_at: '2016-01-30T13:22:59',
-          modified_by: {id: 5},
+          modified_by: {
+            reify: function () {
+              return "User 5";
+            }
+          },
           resource_type: 'Audit',
           content: {
             title: 'My Audit 1.0'
           }
         };
 
-        var result = method(rev1, rev2);
+        var result = method.call({_DATE_FIELDS: {}}, rev1, rev2);
 
-        actual = result.attr();  // a plain object needed
         expectedChangeList = [{
           fieldName: 'Object Name',
           origVal: 'Audit 1.0',
           newVal: 'My Audit 1.0'
         }];
-        expect(actual.changes).toEqual(expectedChangeList);
+        expect(result.changes).toEqual(expectedChangeList);
       });
 
       it('omits object fields that are considered internal from the result',
         function () {
           var rev1 = {
             updated_at: '2016-01-25T16:36:29',
-            modified_by: {id: 5},
+            modified_by: {
+              reify: function () {
+                return "User 5";
+              }
+            },
             resource_type: 'Audit',
             content: {
               internalField: 'AUDIT-e34a'
@@ -344,7 +354,11 @@ describe('GGRC.Components.objectHistory', function () {
           };
           var rev2 = {
             updated_at: '2016-01-30T13:22:59',
-            modified_by: {id: 5},
+            modified_by: {
+              reify: function () {
+                return "User 5";
+              }
+            },
             resource_type: 'Audit',
             content: {
               internalField: 'AUDIT-e34a-v2'
@@ -412,8 +426,7 @@ describe('GGRC.Components.objectHistory', function () {
 
       expect(Revision.findAll).toHaveBeenCalledWith({
         resource_type: 'ObjectFoo',
-        resource_id: 123,
-        __sort: 'updated_at'
+        resource_id: 123
       });
     });
 
@@ -424,8 +437,7 @@ describe('GGRC.Components.objectHistory', function () {
 
         expect(Revision.findAll).toHaveBeenCalledWith({
           source_type: 'ObjectFoo',
-          source_id: 123,
-          __sort: 'updated_at'
+          source_id: 123
         });
       }
     );
@@ -437,8 +449,7 @@ describe('GGRC.Components.objectHistory', function () {
 
         expect(Revision.findAll).toHaveBeenCalledWith({
           destination_type: 'ObjectFoo',
-          destination_id: 123,
-          __sort: 'updated_at'
+          destination_id: 123
         });
       }
     );
@@ -539,25 +550,28 @@ describe('GGRC.Components.objectHistory', function () {
       '"source" end of the mapping',
       function () {
         var revision = {
-          modified_by: {id: 17},
+          modified_by: 'User 17',
           updated_at: new Date('2015-05-17 17:24:01'),
           action: 'created',
-          source_id: 123,
-          source_type: 'ObjectFoo',
-          destination_id: 99,
-          destination_type: 'OtherObject'
+          destination: {
+            type: 'Other',
+            display_name: function () {
+              return 'OtherObject';
+            }
+          },
+          source_id: 99,
+          source_type: 'OtherObject'
         };
 
-        var result = method(revision);
-        result = result.attr();
+        var result = method(revision, [revision]);
 
         expect(result).toEqual({
-          madeBy: 'User 17',
+          madeBy: "User 17",
           updatedAt: new Date('2015-05-17 17:24:01'),
-          mapping: {
-            action: 'Created',
-            relatedObjId: 99,
-            relatedObjType: 'OtherObject'
+          changes: {
+            origVal: '—',
+            newVal: 'Created',
+            fieldName: 'Mapping to Other: OtherObject'
           }
         });
       }
@@ -567,25 +581,28 @@ describe('GGRC.Components.objectHistory', function () {
       '"destination" end of the mapping',
       function () {
         var revision = {
-          modified_by: {id: 17},
+          modified_by: 'User 17',
           updated_at: new Date('2015-05-17 17:24:01'),
           action: 'deleted',
-          source_id: 99,
-          source_type: 'OtherObject',
+          source: {
+            type: 'Other',
+            display_name: function () {
+              return 'OtherObject';
+            }
+          },
           destination_id: 123,
           destination_type: 'ObjectFoo'
         };
 
-        var result = method(revision);
-        result = result.attr();
+        var result = method(revision, [revision]);
 
         expect(result).toEqual({
-          madeBy: 'User 17',
+          madeBy: "User 17",
           updatedAt: new Date('2015-05-17 17:24:01'),
-          mapping: {
-            action: 'Deleted',
-            relatedObjId: 99,
-            relatedObjType: 'OtherObject'
+          changes: {
+            origVal: '—',
+            newVal: 'Deleted',
+            fieldName: 'Mapping to Other: OtherObject'
           }
         });
       }

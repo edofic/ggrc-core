@@ -4,10 +4,12 @@
 # Maintained By: miha@reciprocitylabs.com
 
 import datetime
-import re
 import json
+import re
+import sqlalchemy
 import sys
 import time
+
 from flask import current_app, request
 from settings import CUSTOM_URL_ROOT
 
@@ -209,6 +211,40 @@ def underscore_from_camelcase(name):
 
 def title_from_camelcase(name):
   return _prefix_camelcase(name, " ")
+
+
+# pylint: disable=too-few-public-methods
+# because this is a small context manager
+class QueryCounter(object):
+  """Context manager for counting sqlalchemy database queries.
+
+  Usage:
+    with QueryCounter() as counter:
+      query_count = counter.get
+  """
+
+  def __init__(self):
+    self.queries = []
+
+    def after_cursor_execute(*args):
+      self.queries.append(args[2])
+
+    self.listener = after_cursor_execute
+
+  def __enter__(self):
+    sqlalchemy.event.listen(sqlalchemy.engine.Engine,
+                            "after_cursor_execute",
+                            self.listener)
+    return self
+
+  def __exit__(self, *_):
+    sqlalchemy.event.remove(sqlalchemy.engine.Engine,
+                            "after_cursor_execute",
+                            self.listener)
+
+  @property
+  def get(self):
+    return len(self.queries)
 
 
 class BenchmarkContextManager(object):

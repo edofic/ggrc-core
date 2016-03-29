@@ -71,7 +71,7 @@ class CycleTaskGroupObjectTask(
     """Changing task state must invalidate `workflow_state` on objects
     """
     return [(object_.__class__.__name__, object_.id) for object_ in
-            self.related_objects]
+            self.related_objects]  # pylint: disable=not-an-iterable
 
   _publish_attrs = [
       'cycle',
@@ -125,6 +125,7 @@ class CycleTaskGroupObjectTask(
 
   @computed_property
   def related_objects(self):
+    # pylint: disable=not-an-iterable
     sources = [r.source for r in self.related_sources]
     destinations = [r.destination for r in self.related_destinations]
     return sources + destinations
@@ -176,6 +177,9 @@ class CycleTaskGroupObjectTask(
     """
     query = super(CycleTaskGroupObjectTask, cls).eager_query()
     return query.options(
+        orm.joinedload('cycle')
+           .joinedload('workflow')
+           .undefer_group('Workflow_complete'),
         orm.joinedload('cycle_task_entries'),
     )
 

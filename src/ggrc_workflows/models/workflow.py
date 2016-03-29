@@ -10,33 +10,25 @@ of the Objects that are mapped to any cycle tasks.
 """
 
 from datetime import date
-from sqlalchemy import and_
 from sqlalchemy import not_
 from sqlalchemy import orm
 
 from ggrc import db
 from ggrc.login import get_current_user
+from ggrc.models import mixins
 from ggrc.models import reflection
 from ggrc.models.associationproxy import association_proxy
 from ggrc.models.computed_property import computed_property
 from ggrc.models.context import HasOwnContext
-from ggrc.models.mixins import Base
-from ggrc.models.mixins import CustomAttributable
 from ggrc.models.mixins import deferred
-from ggrc.models.mixins import Described
-from ggrc.models.mixins import Slugged
-from ggrc.models.mixins import Stateful
-from ggrc.models.mixins import Timeboxed
-from ggrc.models.mixins import Titled
 from ggrc.models.person import Person
 from ggrc_basic_permissions.models import UserRole
-from ggrc_workflows.models import cycle
-from ggrc_workflows.models import cycle_task_group_object_task as ctgot
 from ggrc_workflows.models import workflow_person
 
 
-class Workflow(CustomAttributable, HasOwnContext, Timeboxed, Described, Titled,
-               Slugged, Stateful, Base, db.Model):
+class Workflow(mixins.CustomAttributable, HasOwnContext, mixins.Timeboxed,
+               mixins.Described, mixins.Titled, mixins.Slugged,
+               mixins.Stateful, mixins.Base, db.Model):
   """Basic Workflow first class object.
   """
   __tablename__ = 'workflows'
@@ -226,6 +218,15 @@ class Workflow(CustomAttributable, HasOwnContext, Timeboxed, Described, Titled,
 
     return target
 
+  @classmethod
+  def eager_query(cls):
+    return super(Workflow, cls).eager_query().options(
+        orm.subqueryload('cycles').undefer_group('Cycle_complete')
+           .subqueryload("cycle_task_group_object_tasks"),
+        orm.subqueryload('task_groups'),
+        orm.subqueryload('workflow_people'),
+    )
+
 
 class WorkflowState(object):
   """Object state mixin.
@@ -321,23 +322,16 @@ class WorkflowState(object):
       Name of the lowest workflow state, if there are any active cycles.
       Otherwise it returns None.
     """
-    current_cycles = [cycle_ for cycle_ in cycles if cycle_.is_current]
+    current_cycles = [cycle for cycle in cycles if cycle.is_current]
 
     if not current_cycles:
       return None
 
-    cycle_ids = [cycle_.id for cycle_ in current_cycles]
-    overdue_tasks = db.session.query(
-        ctgot.CycleTaskGroupObjectTask.id).join(
-        cycle.Cycle).filter(
-        and_(
-            cycle.Cycle.id.in_(cycle_ids),
-            ctgot.CycleTaskGroupObjectTask.status != "Verified",
-            ctgot.CycleTaskGroupObjectTask.end_date <= date.today()
-        )
-    ).count()
-    if overdue_tasks:
-      return "Overdue"
+    today = date.today()
+    for cycle in current_cycles:
+      for task in cycle.cycle_task_group_object_tasks:
+        if task.status != "Verified" and task.end_date <= today:
+          return "Overdue"
 
     return cls._get_state(current_cycles)
 

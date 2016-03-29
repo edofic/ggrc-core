@@ -51,6 +51,7 @@ class Revision(Base, db.Model):
     query = super(Revision, cls).eager_query()
     return query.options(
         orm.subqueryload('modified_by'),
+        orm.subqueryload('event'),  # used in description
     )
 
   def __init__(self, obj, modified_by_id, action, content):

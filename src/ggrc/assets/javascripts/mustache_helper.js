@@ -1214,18 +1214,7 @@ Mustache.registerHelper("link_to_tree", function () {
  *    * datetime (MM/DD/YYYY hh:mm:ss [PM|AM] [local timezone])
  */
 Mustache.registerHelper('date', function (date, hideTime) {
-  var currentTimezone = moment.tz.guess();
-  var m;
-
-  if (date === undefined || date === null) {
-    return '';
-  }
-
-  m = moment(new Date(date.isComputed ? date() : date));
-  if (hideTime === true) {
-    return m.format('MM/DD/YYYY');
-  }
-  return m.tz(currentTimezone).format('MM/DD/YYYY hh:mm:ss A z');
+  return GGRC.Utils.formatDate(date, hideTime);
 });
 
 /**

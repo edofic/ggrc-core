@@ -4,11 +4,8 @@
 # Maintained By: david@reciprocitylabs.com
 
 from ggrc import db
-from ggrc.models.mixins import Base
-from ggrc.models.mixins import Described
 from ggrc.models.mixins import Identifiable
 from ggrc.models.mixins import Mapping
-from ggrc.models.mixins import deferred
 from sqlalchemy import or_, and_
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.ext.declarative import declared_attr
@@ -134,6 +131,12 @@ class Relationship(Mapping, db.Model):
   def _display_name(self):
     return "{}:{} <-> {}:{}".format(self.source_type, self.source_id,
                                     self.destination_type, self.destination_id)
+
+  def log_json(self):
+    json = super(Relationship, self).log_json()
+    # manually add attrs since the base log_json only captures table columns
+    json["attrs"] = self.attrs.copy()  # copy in order to detach from orm
+    return json
 
 
 class Relatable(object):

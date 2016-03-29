@@ -14,9 +14,11 @@ from ggrc.models.custom_attribute_value import CustomAttributeValue
 class CustomAttributeDefinition(mixins.Base, mixins.Titled, db.Model):
   __tablename__ = 'custom_attribute_definitions'
 
-  definition_type = db.Column(db.String)
-  attribute_type = db.Column(db.String)
+  definition_type = db.Column(db.String, nullable=False)
+  definition_id = db.Column(db.Integer)
+  attribute_type = db.Column(db.String, nullable=False)
   multi_choice_options = db.Column(db.String)
+  multi_choice_mandatory = db.Column(db.String)
   mandatory = db.Column(db.Boolean)
   helptext = db.Column(db.String)
   placeholder = db.Column(db.String)
@@ -24,13 +26,17 @@ class CustomAttributeDefinition(mixins.Base, mixins.Titled, db.Model):
   attribute_values = db.relationship('CustomAttributeValue',
                                      backref='custom_attribute')
 
-  __table_args__ = (UniqueConstraint(
-      'title', 'definition_type', name='_unique_attribute'),)
+  __table_args__ = (
+      UniqueConstraint('definition_type', 'definition_id', 'title',
+                       name='uq_custom_attribute'),
+      db.Index('ix_custom_attributes_title', 'title'))
 
   _publish_attrs = [
       'definition_type',
+      'definition_id',
       'attribute_type',
       'multi_choice_options',
+      'multi_choice_mandatory',
       'mandatory',
       'helptext',
       'placeholder',

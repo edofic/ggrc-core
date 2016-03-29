@@ -6,12 +6,12 @@
 """A module containing the implementation of the assessment template entity."""
 
 from ggrc import db
-from ggrc.models.mixins import Base
+from ggrc.models.mixins import Base, Titled
 from ggrc.models.relationship import Relatable
 from ggrc.models.types import JsonType
 
 
-class AssessmentTemplate(Base, Relatable, db.Model):
+class AssessmentTemplate(Base, Relatable, Titled, db.Model):
   """A class representing the assessment template entity.
 
   An Assessment Template is a template that allows users for easier creation of
@@ -34,10 +34,12 @@ class AssessmentTemplate(Base, Relatable, db.Model):
   # within the releated audit
   default_people = db.Column(JsonType, nullable=False)
 
+  _title_uniqueness = False
+
   # REST properties
   _publish_attrs = [
-      'template_object_type',
-      'test_plan_procedure',
-      'procedure_description',
-      'default_people',
+      "template_object_type",
+      "test_plan_procedure",
+      "procedure_description",
+      "default_people",
   ]

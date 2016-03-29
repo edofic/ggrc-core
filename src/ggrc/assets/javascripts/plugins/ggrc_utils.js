@@ -18,6 +18,20 @@
       }
       return date.toDate();
     },
+    formatDate: function (date, hideTime) {
+      var currentTimezone = moment.tz.guess();
+      var m;
+
+      if (date === undefined || date === null) {
+        return '';
+      }
+
+      m = moment(new Date(date.isComputed ? date() : date));
+      if (hideTime === true) {
+        return m.format('MM/DD/YYYY');
+      }
+      return m.tz(currentTimezone).format('MM/DD/YYYY hh:mm:ss A z');
+    },
     getPickerElement: function (picker) {
       return _.find(_.values(picker), function (val) {
         if (val instanceof Node) {

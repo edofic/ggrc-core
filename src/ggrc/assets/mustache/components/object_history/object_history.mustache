@@ -14,7 +14,7 @@
 
           <div class="w-status">
             <span class="entry-author">
-              <a href="javascript://">{{madeBy}}</a>
+              {{{render '/static/mustache/people/popover.mustache' person=madeBy}}
               made changes &mdash; {{date updatedAt}}
             </span>
             <div class="clearfix">
@@ -30,36 +30,19 @@
             </div>
 
             {{#changes}}
-              {{! the presence of the "changes" list indicates that the
-                  entry is about the change to the instance itself }}
               <div class="clearfix">
                 <div class="third-col">
                   {{fieldName}}
                 </div>
                 <div class="third-col">
-                  {{origVal}}
+                  {{{origVal}}}
                 </div>
                 <div class="third-col">
-                  {{newVal}}
+                  {{{newVal}}}
                 </div>
               </div>
             {{/changes}}
 
-            {{#mapping}}
-              {{! alternatively, the presence of the "mapping" object indicates
-                  that the entry is about a change of an instance's mapping }}
-              <div class="clearfix">
-                <div class="third-col">
-                  Mapping to {{relatedObjType}} {{relatedObjId}}
-                </div>
-                <div class="third-col">
-                  &mdash;
-                </div>
-                <div class="third-col">
-                  {{action}}
-                </div>
-              </div>
-            {{/mapping}}
           </div>
         </li>
       {{/entries}}

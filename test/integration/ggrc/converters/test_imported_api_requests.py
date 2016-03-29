@@ -8,47 +8,15 @@
 This is in converters because it depends on import to provide data
 """
 
-import sqlalchemy
+import collections
 
 from ggrc.models import all_models
+from ggrc.utils import QueryCounter
 from ggrc.views import all_object_views
+from integration.ggrc_workflows.generator import WorkflowsGenerator
 
 from integration.ggrc.converters import TestCase
 from integration.ggrc.generator import ObjectGenerator
-
-
-# pylint: disable=too-few-public-methods
-# because this is a small context manager
-class QueryCounter(object):
-  """Context manager for counting sqlalchemy database queries.
-
-  Usage:
-    with QueryCounter() as counter:
-      query_count = counter.get
-  """
-
-  def __init__(self):
-    self.counter = 0
-
-    def after_cursor_execute(*_):
-      self.counter += 1
-
-    self.listener = after_cursor_execute
-
-  def __enter__(self):
-    sqlalchemy.event.listen(sqlalchemy.engine.Engine,
-                            "after_cursor_execute",
-                            self.listener)
-    return self
-
-  def __exit__(self, *_):
-    sqlalchemy.event.remove(sqlalchemy.engine.Engine,
-                            "after_cursor_execute",
-                            self.listener)
-
-  @property
-  def get(self):
-    return self.counter
 
 
 class TestComprehensiveSheets(TestCase):
@@ -74,6 +42,12 @@ class TestComprehensiveSheets(TestCase):
     filename = "comprehensive_sheet1.csv"
     self.import_file(filename)
 
+    gen = WorkflowsGenerator()
+    wfs = all_models.Workflow.eager_query().filter_by(status='Draft').all()
+    for workflow in wfs:
+      _, cycle = gen.generate_cycle(workflow)
+      self.assertIsNotNone(cycle)
+
   def tearDown(self):
     pass
 
@@ -84,11 +58,12 @@ class TestComprehensiveSheets(TestCase):
     """
     with QueryCounter() as counter:
       for model in self.MODELS:
-        before = counter.counter
+        counter.queries = []
         self.generator.api.get_query(model, "")
-        query_count = counter.get - before
-        self.assertLess(query_count, 100,
-                        "Query count for API GET" + model.__name__)
+        if counter.get > 100 or model.__name__ == "CycleTaskGroupObjectTask":
+          print collections.Counter(counter.queries).most_common(1)
+        self.assertLess(counter.get, 100,
+                        "Query count for API GET " + model.__name__)
 
   def test_queries_per_object_page(self):
     """Import comprehensive_sheet1 and count db requests per collection get.
@@ -103,11 +78,10 @@ class TestComprehensiveSheets(TestCase):
         instance = model.query.first()
         if instance is None or getattr(instance, "id", None) is None:
           continue
-        before = counter.counter
+        counter.queries = []
         res = self.client.get("/{}/{}".format(view.url, instance.id))
         self.assertEqual(res.status_code, 200)
-        query_count = counter.counter - before
-        self.assertLess(query_count, 100,
+        self.assertLess(counter.get, 100,
                         "Query count for object page " + model.__name__)
 
   def test_queries_for_dashboard(self):

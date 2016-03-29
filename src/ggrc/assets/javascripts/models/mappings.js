@@ -814,7 +814,8 @@
     CustomAttributable: {
       custom_attribute_definitions: Search(function (binding) {
         return CMS.Models.CustomAttributeDefinition.findAll({
-          definition_type: binding.instance.root_object
+          definition_type: binding.instance.root_object,
+          definition_id: null
         });
       }, 'CustomAttributeDefinition')
     }

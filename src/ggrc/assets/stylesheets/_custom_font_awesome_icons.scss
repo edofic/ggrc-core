@@ -243,6 +243,11 @@
   &.color { color: $purple; }
 }
 
+.#{$fa-css-prefix}-assessment_template {
+  &:before { content: $fa-var-sliders; }
+  &.color { color: $purple; }
+}
+
 .#{$fa-css-prefix}-assessment-plan {
   &:before { content: $fa-var-wrench; }
   &.color { color: $purple; }
