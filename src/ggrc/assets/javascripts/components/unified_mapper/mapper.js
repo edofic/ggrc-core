@@ -54,6 +54,10 @@
         Assessment: [],
         Request: ['Workflow', 'TaskGroup', 'Person']
       };
+      if (this.attr('getList')) {
+        return ['Workflow', 'Audit', 'AssessmentTemplate',
+          'Assessment', 'Request'];
+      }
       return forbidden[type] ? forbidden[type] : [];
     },
     get_whitelist: function () {
