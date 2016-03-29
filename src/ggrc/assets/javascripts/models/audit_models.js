@@ -1084,10 +1084,10 @@
     },
     defaults: {
       test_plan_procedure: false,
-      template_object_type: "Control",
+      template_object_type: 'Control',
       default_people: {
-        assessors: "Object Owners",
-        verifiers: "Object Owners"
+        assessors: 'Object Owners',
+        verifiers: 'Object Owners'
       }
     },
 
