@@ -37,6 +37,7 @@ can.Component.extend({
     generateAssessments: function (list, options) {
       var que = new RefreshQueue();
 
+      this._results = null;
       que.enqueue(list).trigger().then(function (items) {
         var results = _.map(items, function (item) {
           return this.generateModel(item);
@@ -44,7 +45,7 @@ can.Component.extend({
         this._results = results;
 
         $.when.apply($, results)
-          .then(this.generateCustomAttributes(this, options.assessmentTemplate))
+          .then(this.generateCustomAttributes(this, items, options.assessmentTemplate))
           .then(function () {
             options.context.closeModal();
           })
@@ -52,21 +53,48 @@ can.Component.extend({
           .fail(this.notify.bind(this));
       }.bind(this));
     },
-    generateCustomAttributes: function (context, template) {
-      return function (results) {
-        var people = _.map(results, function (assessment) {
-          var templates = this.getTemplatePeople(template, assessment.object);
-          return _.map(templates, function (person, role) {
-            return CMS.Models.Relationship.createAssignee({
+    generateCustomAttributes: function (context, results, template) {
+      return function () {
+        var list = _.toArray(arguments);
+        var dfds = [];
+
+        _.each(list, function (assessment) {
+          var templates;
+          assessment.reify();
+          templates = this.getTemplate(template, assessment.object);
+
+          _.each(templates.people, function (person, role) {
+            var assignee;
+            if (!person) {
+              return;
+            }
+            assignee = CMS.Models.Relationship.createAssignee({
               role: role,
               source: person,
               destination: assessment,
               context: assessment.context
             }).save();
+            dfds.push(assignee);
           });
-        }.bind(this));
+          can.each(templates.customAttributes, function (customAttr) {
+            var data;
+            var relationship;
+            if (!customAttr) {
+              return;
+            }
+            customAttr.reify();
+            data = customAttr.serialize();
 
-        return $.when.apply($, people);
+            delete data.id;
+            data.definition_id = assessment.id;
+            data.definition_type = assessment.constructor.table_singular;
+
+            relationship = new CMS.Models.CustomAttributeDefinition(data);
+            dfds.push(relationship.save());
+          });
+        }, this);
+
+        return $.when.apply($, dfds);
       }.bind(context);
     },
     generateModel: function (object, template) {
@@ -83,8 +111,9 @@ can.Component.extend({
       }
       return new CMS.Models.Assessment(data).save();
     },
-    getTemplatePeople: function (id, object) {
+    getTemplate: function (id, object) {
       var model = CMS.Models.AssessmentTemplate.findInCacheById(id);
+      var customAttributes;
       var people;
       var types = {
         'Object Owners': function () {
@@ -93,6 +122,12 @@ can.Component.extend({
         'Audit Lead': this.scope.audit.contact,
         'Object Contact': function () {
           return this.contact;
+        },
+        'Primary Contact': function () {
+          return this.contact;
+        },
+        'Secondary Contact': function () {
+          return this.secondary_contact;
         },
         'Primary Assessor': function () {
           return this.principal_assessor;
@@ -109,7 +144,8 @@ can.Component.extend({
         }
         type = types[prop];
         if (_.isFunction(type)) {
-          return type.call(object);
+          debugger;
+          return type.call(object.reify ? object.reify() : object);
         }
         return type;
       }
@@ -117,11 +153,20 @@ can.Component.extend({
       if (!model) {
         return;
       }
+
+      model.reify();
+      object.reify();
+      model.load_custom_attribute_definitions();
+
       people = model.default_people;
+      customAttributes = model.custom_attribute_definitions;
 
       return {
-        Assessor: getTypes(people.assessors),
-        Verifier: getTypes(people.verifiers)
+        people: {
+          Assessor: getTypes(people.assessors),
+          Verifier: getTypes(people.verifiers)
+        },
+        customAttributes: customAttributes
       };
     },
     notify: function () {
