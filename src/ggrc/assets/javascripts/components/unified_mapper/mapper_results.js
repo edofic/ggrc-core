@@ -8,7 +8,7 @@
 (function (can, $) {
   'use strict';
 
-  can.Component.extend({
+  GGRC.Components('mapperResults', {
     tag: 'mapper-results',
     template: can.view(
       GGRC.mustache_path +

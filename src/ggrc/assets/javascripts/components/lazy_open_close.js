@@ -8,7 +8,7 @@
 (function (can, $) {
   'use strict';
 
-  can.Component.extend({
+  GGRC.Components('lazyOpenClose', {
     tag: 'lazy-openclose',
     scope: {
       show: false

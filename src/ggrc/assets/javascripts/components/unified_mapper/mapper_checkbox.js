@@ -8,7 +8,7 @@
 (function (can, $) {
   'use strict';
 
-  can.Component.extend({
+  GGRC.Components('mapperCheckbox', {
     tag: 'mapper-checkbox',
     template: '<content />',
     scope: {
