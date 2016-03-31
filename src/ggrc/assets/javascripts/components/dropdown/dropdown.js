@@ -8,6 +8,12 @@
 (function (can, $) {
   'use strict';
 
+  /*
+    Component abstracts <select> dropdown in HTML.
+
+    It recieves `name` of the attribute that should be set and `optionsList`
+    with titles and values
+   */
   GGRC.Components('dropdown', {
     tag: 'dropdown',
     template: can.view(
@@ -15,7 +21,16 @@
       '/components/dropdown/dropdown.mustache'
     ),
     scope: {
-      name: '@'
+      name: '@',
+      className: '@',
+      /*
+        Options list should be an `array` of object containing `title` and `value`
+        [{
+          title: `title`
+          value: `value`
+        }]
+       */
+      optionsList: null
     }
   });
 })(window.can, window.can.$);
