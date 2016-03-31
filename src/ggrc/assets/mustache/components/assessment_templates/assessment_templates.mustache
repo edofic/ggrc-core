@@ -7,16 +7,7 @@
 
 <div class="row-fluid">
   <div class="span4">
-    {{#if templates.length}}
     <h6>Select assessment template</h6>
-    <select class="input-block-level" can-value="assessmentTemplate" name="assessment-template">
-      <option selected value="" label="No template"></option>
-      {{#templates}}
-        {{#if_equals instance.template_object_type type}}
-        <option value="{{instance.id}}" label="{{instance.title}}"></option>
-        {{/if_equals}}
-      {{/templates}}
-    </select>
-    {{/if}}
+    <dropdown list="templates" name="assessmentTemplate"></dropdown>
   </div>
 </div>

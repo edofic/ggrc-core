@@ -16,7 +16,28 @@
     ),
     scope: {
       binding: '@',
-      templates: []
+      responses: [],
+      templates: function () {
+        var type = this.attr('type');
+        var responses = this.attr('responses');
+        var noValue = {
+          title: 'No template',
+          value: ''
+        };
+        var items = _.compact(_.map(responses, function (response) {
+          if (!response.instance) {
+            return;
+          }
+          if (response.instance.template_object_type !== type) {
+            return;
+          }
+          return {
+            title: response.instance.title,
+            value: response.instance.id
+          };
+        }));
+        return [noValue].concat(items);
+      }
     },
     events: {
       '{scope} type': function () {
@@ -28,7 +49,7 @@
       var binding = instance.get_binding(this.scope.attr('binding'));
 
       binding.refresh_instances().done(function (response) {
-        this.scope.attr('templates', response);
+        this.scope.attr('responses', response);
       }.bind(this));
     }
   });
