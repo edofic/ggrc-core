@@ -107,19 +107,12 @@
               Default Assessors
               <span class="required">*</span>
             </label>
-
-            <select
-              can-value="instance.default_people.assessors"
-              class="input-block-level js-toggle-field">
-              <option value="Object Owners">Object Owners</option>
-              <option value="Audit Lead">Audit Lead</option>
-              <option value="Object Contact">Object Contact</option>
-              <option value="Primary Assessor">Primary Assessor</option>
-              <option value="Secondary Assessors">Secondary Assessors</option>
-              <option value="Primary Contact">Primary Contact</option>
-              <option value="Secondary Contact">Secondary Contact</option>
-              <option value="other">Others...</option>
-            </select>
+            {{log .}}
+            <dropdown
+              class="input-block-level js-toggle-field"
+              list="instance.people_values"
+              name="instance.default_people.assessors"
+            ></dropdown>
           </div>
 
           <div class="span6">
@@ -138,18 +131,11 @@
               <span class="required">*</span>
             </label>
 
-            <select
-              can-value="instance.default_people.verifiers"
-              class="input-block-level js-toggle-field">
-              <option value="Object Owners">Object Owners</option>
-              <option value="Audit Lead">Audit Lead</option>
-              <option value="Object Contact">Object Contact</option>
-              <option value="Primary Assessor">Primary Assessor</option>
-              <option value="Secondary Assessors">Secondary Assessors</option>
-              <option value="Primary Contact">Primary Contact</option>
-              <option value="Secondary Contact">Secondary Contact</option>
-              <option value="other">Others...</option>
-            </select>
+            <dropdown
+              class="input-block-level js-toggle-field"
+              list="instance.people_values"
+              name="instance.default_people.verifiers"
+            ></dropdown>
           </div>
 
           <div class="span6">

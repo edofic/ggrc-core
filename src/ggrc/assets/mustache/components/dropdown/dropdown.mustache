@@ -5,7 +5,9 @@
   Maintained By: ivan@reciprocitylabs.com
 }}
 
-<select class="input-block-level" can-value="{{name}}" name="{{name}}">
+<select
+  class="{{#if class}}{{class}}{{else}}input-block-level{{/if}}"
+  can-value="{{name}}">
   {{#list}}
     <option value="{{value}}" label="{{title}}"></option>
   {{/list}}

@@ -1082,13 +1082,24 @@
       audit: 'CMS.Models.Audit.stub',
       context: 'CMS.Models.Context.stub'
     },
+
     defaults: {
       test_plan_procedure: false,
       template_object_type: 'Control',
       default_people: {
         assessors: 'Object Owners',
         verifiers: 'Object Owners'
-      }
+      },
+      people_values: [
+        {value: 'Object Owners', title: 'Object Owners'},
+        {value: 'Audit Lead', title: 'Audit Lead'},
+        {value: 'Object Contact', title: 'Object Contact'},
+        {value: 'Primary Assessor', title: 'Primary Assessor'},
+        {value: 'Secondary Assessors', title: 'Secondary Assessors'},
+        {value: 'Primary Contact', title: 'Primary Contact'},
+        {value: 'Secondary Contact', title: 'Secondary Contact'},
+        {value: 'other', title: 'Others...'}
+      ]
     },
 
     /**
