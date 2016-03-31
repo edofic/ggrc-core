@@ -61,6 +61,9 @@
           var list = _.toArray(arguments);
           var dfds = [];
 
+          if (!template) {
+            return $.Deferred().resolve();
+          }
           _.each(list, function (assessment) {
             var templates;
             assessment.reify();
