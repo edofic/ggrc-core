@@ -69,18 +69,20 @@
             assessment.reify();
             templates = this.getTemplate(template, assessment.object);
 
-            _.each(templates.people, function (person, role) {
+            _.each(templates.people, function (personArr, role) {
               var assignee;
-              if (!person) {
+              if (!personArr) {
                 return;
               }
-              assignee = CMS.Models.Relationship.createAssignee({
-                role: role,
-                source: person,
-                destination: assessment,
-                context: assessment.context
-              }).save();
-              dfds.push(assignee);
+              _.each(personArr, function (person) {
+                assignee = CMS.Models.Relationship.createAssignee({
+                  role: role,
+                  source: person,
+                  destination: assessment,
+                  context: assessment.context
+                }).save();
+                dfds.push(assignee);
+              });
             });
             can.each(templates.customAttributes, function (customAttr) {
               var data;
@@ -123,23 +125,23 @@
         var people;
         var types = {
           'Object Owners': function () {
-            return this.object_owners;
+            return [this.object_owners];
           },
           'Audit Lead': this.scope.audit.contact,
           'Object Contact': function () {
-            return this.contact;
+            return [this.contact];
           },
           'Primary Contact': function () {
-            return this.contact;
+            return [this.contact];
           },
           'Secondary Contact': function () {
-            return this.secondary_contact;
+            return [this.secondary_contact];
           },
           'Primary Assessor': function () {
-            return this.principal_assessor;
+            return [this.principal_assessor];
           },
           'Secondary Assessor': function () {
-            return this.secondary_assessor;
+            return [this.secondary_assessor];
           }
         };
 
