@@ -114,6 +114,7 @@ dashboard-js-files:
   - components/unified_mapper/mapper.js
   - components/unified_mapper/mapper_results.js
   - components/unified_mapper/mapper_checkbox.js
+  - components/dropdown/dropdown.js
   - components/link_to_clipboard.js
   - components/relevant_filters.js
   - components/csv/export.js
@@ -229,6 +230,7 @@ dashboard-js-template-files:
   - issues/remediation_plan.mustache
   - components/unified_mapper/mapper_results.mustache
   - components/assessment_templates/assessment_templates.mustache
+  - components/dropdown/dropdown.mustache
   - components/object_history/object_history.mustache
   - custom_attributes/modal_content.mustache
   - custom_attributes/info.mustache

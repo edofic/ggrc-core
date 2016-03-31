@@ -1,0 +1,12 @@
+{{!
+  Copyright (C) 2016 Google Inc., authors, and contributors <see AUTHORS file>
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+  Created By: ivan@reciprocitylabs.com
+  Maintained By: ivan@reciprocitylabs.com
+}}
+
+<select class="input-block-level" can-value="{{name}}" name="{{name}}">
+  {{#list}}
+    <option value="{{value}}" label="{{title}}"></option>
+  {{/list}}
+</select>
