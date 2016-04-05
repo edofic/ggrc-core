@@ -112,8 +112,6 @@ track_state_for_class(Assessment)
 def handle_assessment_post(sender, obj=None, src=None, service=None):
   from ggrc.models import all_models
 
-  print "handle_assessment_post", sender, obj, src, service
-
   if not src['template']:
     return
 
