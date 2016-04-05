@@ -91,7 +91,6 @@ def relate_ca(assessment, related):
     db.session.add(definition)
 
 
-# pylint: disable=unused-variable
 @Resource.model_posted_after_commit.connect_via(Assessment)
 def handle_assessment_post(sender, obj=None, src=None, service=None):
   """Apply custom attribute definitions and map people roles
