@@ -133,26 +133,31 @@ def handle_assessment_post(sender, obj=None, src=None, service=None):
   def assign_people(people, user_type):
     people = people if isinstance(people, list) else [people]
     for person in people:
-      rel = relationship(
-        source=person,
-        destination=obj,
-        context=obj.context,
-        attrs={
-          'AssigneeType': user_type,
-        },
-      )
-      db.session.add(rel)
+      rel = filter(lambda rel: rel['source'] == person, people_list)
+      if rel:
+        rel = rel[0]
+        rel['attrs']['AssigneeType'] += (',' + user_type)
+      else:
+        rel = {
+          'source': person,
+          'destination': obj,
+          'context': obj.context,
+          'attrs': {
+            'AssigneeType': user_type,
+          },
+        }
+        people_list.append(rel)
 
   relationship = getattr(all_models, 'Relationship', None)
   template = get_by_id(src['template'])
   src_obj = get_by_id(src['object'])
   audit = get_by_id(src['audit'])
   people = template.default_people
+  people_list = []
   ca_definitions = get_model('CustomAttributeDefinition').filter_by(
       definition_id=template.id,
       definition_type='assessment_template'
     ).all()
-
   types = {
     'Object Owners': get_object_owners(src_obj),
     'Audit Lead': audit.contact,
@@ -165,6 +170,10 @@ def handle_assessment_post(sender, obj=None, src=None, service=None):
 
   assign_people(get_value(people['assessors']), 'Assessor')
   assign_people(get_value(people['verifiers']), 'Verifier')
+
+  for person in people_list:
+    rel = relationship(**person)
+    db.session.add(rel)
 
   for definition in ca_definitions:
     definition.id = None
