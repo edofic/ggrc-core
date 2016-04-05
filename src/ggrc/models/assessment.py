@@ -20,6 +20,8 @@ from ggrc.models.reflection import PublishOnly
 from ggrc.models.relationship import Relatable
 from ggrc.models.track_object_state import HasObjectState
 from ggrc.models.track_object_state import track_state_for_class
+from ggrc.services.common import Resource
+from ggrc.models.assessment_template import AssessmentTemplate
 
 
 class Assessment(Assignable, HasObjectState, TestPlanned, CustomAttributable,
@@ -105,3 +107,69 @@ class Assessment(Assignable, HasObjectState, TestPlanned, CustomAttributable,
     return cls._get_relate_filter(predicate, "Verifier")
 
 track_state_for_class(Assessment)
+
+@Resource.model_posted_after_commit.connect_via(Assessment)
+def handle_assessment_post(sender, obj=None, src=None, service=None):
+  from ggrc.models import all_models
+
+  print "handle_assessment_post", sender, obj, src, service
+
+  if not src['template']:
+    return
+
+  def get_by_id(obj):
+    model = get_model(obj['type'])
+    return model.filter_by(id=obj['id']).first()
+
+  def get_model(model_type):
+    model = getattr(all_models, model_type, None)
+    return db.session.query(model)
+
+  def get_object_owners(obj):
+    return [owner.person for owner in obj.object_owners]
+
+  def get_value(obj):
+    type_val = types[obj]
+    return type_val() if callable(type_val) else type_val
+
+  def assign_people(people, user_type):
+    people = people if isinstance(people, list) else [people]
+    for person in people:
+      rel = relationship(
+        source=person,
+        destination=obj,
+        context=obj.context,
+        attrs={
+          'AssigneeType': user_type,
+        },
+      )
+      db.session.add(rel)
+
+  relationship = getattr(all_models, 'Relationship', None)
+  template = get_by_id(src['template'])
+  src_obj = get_by_id(src['object'])
+  audit = get_by_id(src['audit'])
+  people = template.default_people
+  ca_definitions = get_model('CustomAttributeDefinition').filter_by(
+      definition_id=template.id,
+      definition_type='assessment_template'
+    ).all()
+
+  types = {
+    'Object Owners': get_object_owners(src_obj),
+    'Audit Lead': audit.contact,
+    'Object Contact': src_obj.contact,
+    'Primary Contact': src_obj.contact,
+    'Secondary Contact': src_obj.secondary_contact,
+    'Primary Assessor': src_obj.principal_assessor,
+    'Secondary Assessor': src_obj.secondary_assessor,
+  }
+
+  assign_people(get_value(people['assessors']), 'Assessor')
+  assign_people(get_value(people['verifiers']), 'Verifier')
+
+  for definition in ca_definitions:
+    definition.id = None
+    definition.definition_id = obj.id
+    definition.definition_type = obj.__tablename__
+    db.session.add(definition)
