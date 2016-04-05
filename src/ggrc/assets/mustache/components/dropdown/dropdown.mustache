@@ -6,7 +6,7 @@
 }}
 
 <select
-  class="{{#if className}}{{className}}{{else}}input-block-level{{/if}}"
+  class="{{getClassName}}"
   can-value="{{name}}">
   {{#optionsList}}
     <option value="{{value}}" label="{{title}}"></option>
