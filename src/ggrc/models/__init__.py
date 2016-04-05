@@ -6,6 +6,7 @@
 from ggrc.models.all_models import *
 from ggrc import settings
 from ggrc import db
+from ggrc.models import hooks
 
 """All gGRC model objects and associated utilities."""
 
