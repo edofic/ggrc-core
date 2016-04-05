@@ -176,7 +176,10 @@ def handle_assessment_post(sender, obj=None, src=None, service=None):
     db.session.add(rel)
 
   for definition in ca_definitions:
+    db.make_transient(definition)
     definition.id = None
     definition.definition_id = obj.id
     definition.definition_type = obj.__tablename__
+    definition.title = 'Definition for {}-{}'.format(
+      obj.__tablename__, obj.id)
     db.session.add(definition)
