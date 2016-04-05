@@ -43,74 +43,25 @@
         this._results = null;
         que.enqueue(list).trigger().then(function (items) {
           var results = _.map(items, function (item) {
-            return this.generateModel(item);
+            return this.generateModel(item, options.assessmentTemplate);
           }.bind(this));
           this._results = results;
 
           $.when.apply($, results)
-            .then(this.generateCustomAttributes(this, items, options.assessmentTemplate))
-            .then(function () {
-              options.context.closeModal();
-            })
+            .always(options.context.closeModal.bind(options.context))
             .done(this.notify.bind(this))
             .fail(this.notify.bind(this));
         }.bind(this));
       },
-      generateCustomAttributes: function (context, results, template) {
-        return function () {
-          var list = _.toArray(arguments);
-          var dfds = [];
-
-          if (!template) {
-            return $.Deferred().resolve();
-          }
-          _.each(list, function (assessment) {
-            var templates;
-            assessment.reify();
-            templates = this.getTemplate(template, assessment.object);
-
-            _.each(templates.people, function (personArr, role) {
-              var assignee;
-              if (!personArr) {
-                return;
-              }
-              _.each(personArr, function (person) {
-                assignee = CMS.Models.Relationship.createAssignee({
-                  role: role,
-                  source: person,
-                  destination: assessment,
-                  context: assessment.context
-                }).save();
-                dfds.push(assignee);
-              });
-            });
-            can.each(templates.customAttributes, function (customAttr) {
-              var data;
-              var relationship;
-              if (!customAttr) {
-                return;
-              }
-              customAttr.reify();
-              data = customAttr.serialize();
-
-              delete data.id;
-              data.definition_id = assessment.id;
-              data.definition_type = assessment.constructor.table_singular;
-
-              relationship = new CMS.Models.CustomAttributeDefinition(data);
-              dfds.push(relationship.save());
-            });
-          }, this);
-
-          return $.when.apply($, dfds);
-        }.bind(context);
-      },
       generateModel: function (object, template) {
+        var assessmentTemplate = CMS.Models.AssessmentTemplate.findInCacheById(
+          template);
         var title = object.title + ' assessment for ' + this.scope.audit.title;
         var data = {
           audit: this.scope.audit,
           object: object.stub(),
           context: this.scope.audit.context,
+          template: assessmentTemplate.stub(),
           title: title,
           owners: [CMS.Models.Person.findInCacheById(GGRC.current_user.id)]
         };
@@ -118,63 +69,6 @@
           data.test_plan = object.test_plan;
         }
         return new CMS.Models.Assessment(data).save();
-      },
-      getTemplate: function (id, object) {
-        var model = CMS.Models.AssessmentTemplate.findInCacheById(id);
-        var customAttributes;
-        var people;
-        var types = {
-          'Object Owners': function () {
-            return [this.object_owners];
-          },
-          'Audit Lead': this.scope.audit.contact,
-          'Object Contact': function () {
-            return [this.contact];
-          },
-          'Primary Contact': function () {
-            return [this.contact];
-          },
-          'Secondary Contact': function () {
-            return [this.secondary_contact];
-          },
-          'Primary Assessor': function () {
-            return [this.principal_assessor];
-          },
-          'Secondary Assessor': function () {
-            return [this.secondary_assessor];
-          }
-        };
-
-        function getTypes(prop) {
-          var type;
-          if (_.isArray(prop)) {
-            return prop;
-          }
-          type = types[prop];
-          if (_.isFunction(type)) {
-            return type.call(object.reify ? object.reify() : object);
-          }
-          return type;
-        }
-
-        if (!model) {
-          return;
-        }
-
-        model.reify();
-        object.reify();
-        model.load_custom_attribute_definitions();
-
-        people = model.default_people;
-        customAttributes = model.custom_attribute_definitions;
-
-        return {
-          people: {
-            Assessor: getTypes(people.assessors),
-            Verifier: getTypes(people.verifiers)
-          },
-          customAttributes: customAttributes
-        };
       },
       notify: function () {
         var success;
