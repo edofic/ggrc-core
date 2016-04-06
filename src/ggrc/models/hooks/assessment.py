@@ -15,7 +15,7 @@ from ggrc.models import all_models
 from ggrc.models import Assessment
 from ggrc.models import Relationship
 from ggrc.services.common import Resource
-
+import ipdb
 
 def init_hook():
   # pylint: disable=unused-variable
@@ -25,7 +25,7 @@ def init_hook():
     """Apply custom attribute definitions and map people roles
     when generating Assessmet with template"""
 
-    if not src["template"]:
+    if not src.get("template", False):
       return
 
     related = {
@@ -86,6 +86,9 @@ def assign_people(assignees, assignee_role, assessment, relationships):
   """
   assignees = assignees if isinstance(assignees, list) else [assignees]
   for assignee in assignees:
+    if not assignee:
+      return
+
     rel = (val for val in relationships if val["source"] == assignee)
     rel = next(rel, None)
     if rel:

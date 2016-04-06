@@ -61,7 +61,7 @@
           audit: this.scope.audit,
           object: object.stub(),
           context: this.scope.audit.context,
-          template: assessmentTemplate.stub(),
+          template: assessmentTemplate && assessmentTemplate.stub(),
           title: title,
           owners: [CMS.Models.Person.findInCacheById(GGRC.current_user.id)]
         };
