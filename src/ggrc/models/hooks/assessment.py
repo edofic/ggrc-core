@@ -5,26 +5,35 @@
 
 from ggrc import db
 from ggrc.models import all_models
-from ggrc.models.assessment import Assessment
-from ggrc.models.relationship import Relationship
+from ggrc.models import Assessment
+from ggrc.models import Relationship
+from ggrc.models import CustomAttributeDefinition
 from ggrc.services.common import Resource
 
 
 def get_by_id(obj):
-  """Get model by id"""
-  model = get_model(obj['type'])
-
+  """Get object instance by id"""
+  model = get_model_query(obj['type'])
   return model.filter_by(id=obj['id']).first()
 
 
-def get_model(model_type):
-  """Get model from all models"""
+def get_model_query(model_type):
+  """Get model query"""
   model = getattr(all_models, model_type, None)
   return db.session.query(model)
 
 
-def get_value(which, assessment, template=None, audit=None, obj=None):
-  """Gets person value from string"""
+def get_value(which, assessment, template, audit, obj):
+  """Gets person value from string
+
+      Args:
+        which (string): type of people we are getting from template
+        assessment (model instance): Assessment model
+        template (model instance): Template related to Assessment
+        audit (model instance): Audit related to Assessment
+        obj (model instance): Object related to Assessment
+                              (it can be any object in our app ie. Control, Issue, Facility...)
+  """
   types = {
       'Object Owners': [owner.person for owner in assessment.object_owners],
       'Audit Lead': audit.contact,
@@ -38,27 +47,44 @@ def get_value(which, assessment, template=None, audit=None, obj=None):
   return types[people]
 
 
-def assign_people(people, person_type, assessment, relationships):
-  """Create a list of people with roles"""
-  people = people if isinstance(people, list) else [people]
-  for person in people:
-    rel = (val for val in relationships if val['source'] == person)
+def assign_people(assignees, assignee_role, assessment, relationships):
+  """Create a list of people with roles
+
+      Args:
+        assignees (list of model instances): List of people
+        assignee_role (string): It can be either Assessor or Verifier
+        assessment (model instance): Assessment model
+        relationships (list): List relationships between assignees and assessment
+                              with merged AssigneeType's
+  """
+  assignees = assignees if isinstance(assignees, list) else [assignees]
+  for assignee in assignees:
+    rel = (val for val in relationships if val['source'] == assignee)
     rel = next(rel, None)
     if rel:
-      rel['attrs']['AssigneeType'] += (',' + person_type)
+      values = rel['attrs']['AssigneeType'].split(',')
+      rel['attrs']['AssigneeType'] = ','.join(set(values))
     else:
       relationships.append({
-          'source': person,
+          'source': assignee,
           'destination': assessment,
           'context': assessment.context,
           'attrs': {
-              'AssigneeType': person_type,
+              'AssigneeType': assignee_role,
           },
       })
 
 
-def relate_people(assessment, related):
-  """Make relationship between a list of people and assessment"""
+def relate_assignees(assessment, related):
+  """Generates assignee list and relates them to Assessment objects
+
+    Args:
+        assessment (model instance): Assessment model
+        related (dict): Dict containing model instances related to assessment
+                        - template
+                        - obj
+                        - audit
+  """
   people_types = {
       'assessors': 'Assessor',
       'verifiers': 'Verifier',
@@ -75,11 +101,19 @@ def relate_people(assessment, related):
 
 
 def relate_ca(assessment, related):
-  """Create custom attributes for assessment"""
-  ca_definitions = get_model('CustomAttributeDefinition').filter_by(
+  """Generates custom attribute list and relates it to Assessment objects
+
+    Args:
+        assessment (model instance): Assessment model
+        related (dict): Dict containing model instances related to assessment
+                        - template
+                        - obj
+                        - audit
+  """
+  ca_definitions = CustomAttributeDefinition.query.filter_by.filter_by(
       definition_id=related['template'].id,
       definition_type='assessment_template'
-  ).all()
+  )
 
   for definition in ca_definitions:
     db.make_transient(definition)
@@ -105,5 +139,5 @@ def handle_assessment_post(sender, obj=None, src=None, service=None):
       'audit': get_by_id(src['audit']),
   }
 
-  relate_people(obj, related)
+  relate_assignees(obj, related)
   relate_ca(obj, related)
