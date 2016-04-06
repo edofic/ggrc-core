@@ -101,17 +101,20 @@
 
       var dfd = Revision.findAll({
         resource_type: this._INSTANCE_TYPE,
-        resource_id: instance.id
+        resource_id: instance.id,
+        __sort: 'updated_at'
       });
 
       var dfd2 = Revision.findAll({
         source_type: this._INSTANCE_TYPE,
-        source_id: instance.id
+        source_id: instance.id,
+        __sort: 'updated_at'
       });
 
       var dfd3 = Revision.findAll({
         destination_type: this._INSTANCE_TYPE,
-        destination_id: instance.id
+        destination_id: instance.id,
+        __sort: 'updated_at'
       });
 
       var dfdResults = can.when(
@@ -184,20 +187,12 @@
      *   element follows the format returned by the `_objectChangeDiff` method.
      */
     _computeObjectChanges: function (revisions) {
-      var diff;
-      var diffList = [];
-      var i;
-
-      for (i = 1; i < revisions.length; i++) {
-        diff = this._objectChangeDiff(revisions[i - 1], revisions[i]);
-        // It can happen that there were no changes to the publicly visible
-        // object fields, and the resulting diff object's change list is thus
-        // empty - we don't include those in the result.
-        if (diff.changes.length > 0) {
-          diffList.push(diff);
-        }
-      }
-      return diffList;
+      var diffList = _.map(revisions, function (revision, i) {
+        // default to empty revision
+        var prev = revisions[i - 1] || {content: {}};
+        return this._objectChangeDiff(prev, revision);
+      }.bind(this));
+      return _.filter(diffList, 'changes.length');
     },
 
     /**
@@ -257,11 +252,13 @@
               origVal = GGRC.Utils.formatDate(origVal, true);
             }
           }
-          diff.changes.push({
-            fieldName: displayName,
-            origVal: origVal,
-            newVal: value
-          });
+          if (origVal || value) {
+            diff.changes.push({
+              fieldName: displayName,
+              origVal: origVal || "—",
+              newVal: value || "—"
+            });
+          }
         }
       }.bind(this));
 
@@ -336,6 +333,8 @@
       }
       if (_.exists(previous, 'content.attrs.AssigneeType')) {
         origVal = previous.content.attrs.AssigneeType;
+      } else if (revision.action === 'deleted') {
+        origVal = 'Created';
       }
       return {
         madeBy: revision.modified_by,

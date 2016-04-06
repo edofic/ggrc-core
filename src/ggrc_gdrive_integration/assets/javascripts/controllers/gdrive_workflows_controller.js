@@ -239,7 +239,7 @@
 
       'a[data-toggle=gdrive-picker] click' : function (el, ev) {
 
-        var dfd = GGRC.Controllers.GAPI.authorize(['https://www.googleapis.com/auth/drive']),
+        var dfd = GGRC.Controllers.GAPI.authorize(['https://www.googleapis.com/auth/drive.file']),
           folder_id = el.data('folder-id');
         dfd.then(function () {
           gapi.load('picker', {'callback': createPicker});
@@ -485,7 +485,7 @@
         }
 
         verify_dfd.done(function () {
-          dfd = GGRC.Controllers.GAPI.authorize(['https://www.googleapis.com/auth/drive']);
+          dfd = GGRC.Controllers.GAPI.authorize(['https://www.googleapis.com/auth/drive.file']);
           dfd.then(function () {
             gapi.load('picker', {'callback': createPicker});
           });

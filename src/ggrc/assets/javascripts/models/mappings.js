@@ -606,7 +606,7 @@
         requests: 'Request',
         _program: 'Program',
         context: 'Context',
-        related_objects_as_source: ['Assessment', 'Issue']
+        related_objects_as_source: ['Assessment', 'AssessmentTemplate', 'Issue']
       },
       requests: Direct("Request", "audit", "requests"),
       active_requests: CustomFilter('requests', function (result) {

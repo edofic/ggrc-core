@@ -7,7 +7,10 @@
 
 <li class="row-fluid add-field">
   <div class="span-custom2-and-half">
-    <input class="input-block-level" can-value="selected.title" type="text" placeholder="Enter title">
+    <input class="input-block-level"
+      type="text"
+      can-value="selected.title"
+      placeholder="Enter title">
   </div>
   <div class="span-custom1-and-half">
     <select class="input-block-level" can-value="selected.type">
@@ -17,7 +20,14 @@
     </select>
   </div>
   <div class="span2">
-    <input class="input-block-level" can-value="selected.values" type="text" placeholder="{{placeholder}}">
+    {{#in_array selected.type valueAttrs}}
+      <input class="input-block-level"
+        can-value="selected.values"
+        type="text"
+        placeholder="{{placeholder}}">
+    {{else}}
+      N/A
+    {{/in_array}}
   </div>
   <div class="span2 centered checkbox-wrap">
   </div>

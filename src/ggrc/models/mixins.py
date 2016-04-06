@@ -4,22 +4,24 @@
 # Maintained By: dan@reciprocitylabs.com
 
 from uuid import uuid1
+import datetime
 
 from flask import current_app
 from sqlalchemy import and_
 from sqlalchemy import event
 from sqlalchemy import orm
 from sqlalchemy.ext.declarative import declared_attr
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import foreign
 from sqlalchemy.orm import relationship
 from sqlalchemy.orm import validates
 from sqlalchemy.orm.session import Session
 
 from ggrc import db
+from ggrc.models import reflection
+from ggrc.models.computed_property import computed_property
 from ggrc.models.inflector import ModelInflectorDescriptor
 from ggrc.models.reflection import AttributeInfo
-from ggrc.models.computed_property import computed_property
-
 from ggrc.utils import underscore_from_camelcase
 
 """Mixins to add common attributes and relationships. Note, all model classes
@@ -321,11 +323,116 @@ class Stateful(object):
 
   @validates('status')
   def validate_status(self, key, value):
+    # Sqlalchemy only uses one validator per status (not neccessarily the
+    # first) and ignores others. This enables cooperation between validators
+    # since there are other mixins that want to touch 'status'.
+    if hasattr(super(Stateful, self), "validate_status"):
+      value = super(Stateful, self).validate_status(key, value)
     if value is None:
       value = self.default_status()
     if value not in self.valid_statuses():
       message = u"Invalid state '{}'".format(value)
       raise ValueError(message)
+    return value
+
+
+class FinishedDate(object):
+  """Adds 'Finished Date' which is set when status is set to a finished state.
+
+  Requires Stateful to be mixed in as well.
+  """
+
+  NOT_DONE_STATES = None
+  DONE_STATES = {}
+
+  # pylint: disable=method-hidden
+  # because validator only sets date per model instance
+  @declared_attr
+  def finished_date(self):
+    return deferred(
+        db.Column(db.Date, nullable=True),
+        self.__name__
+    )
+
+  _publish_attrs = [
+      reflection.PublishOnly('finished_date')
+  ]
+
+  _aliases = {
+      "finished_date": "Finished Date"
+  }
+
+  @validates('status')
+  def validate_status(self, key, value):
+    """Update finished_date given the right status change."""
+    # Sqlalchemy only uses one validator per status (not neccessarily the
+    # first) and ignores others. This enables cooperation between validators
+    # since 'status' is not defined here.
+    if hasattr(super(FinishedDate, self), "validate_status"):
+      value = super(FinishedDate, self).validate_status(key, value)
+    # pylint: disable=unsupported-membership-test
+    # short circuit
+    if (value in self.DONE_STATES and
+       (self.NOT_DONE_STATES is None or
+           self.status in self.NOT_DONE_STATES)):
+      self.finished_date = datetime.datetime.now()
+    elif ((self.NOT_DONE_STATES is None or
+           value in self.NOT_DONE_STATES) and
+            self.status in self.DONE_STATES):
+      self.finished_date = None
+    return value
+
+
+class VerifiedDate(object):
+  """Adds 'Verified Date' which is set when status is set to 'Verified'.
+
+  When object is verified the status is overriden to 'Final' and the
+  information about verification exposed as the 'verified' boolean.
+  Requires Stateful to be mixed in as well.
+  """
+
+  VERIFIED_STATES = {u"Verified"}
+  DONE_STATES = {}
+
+  # pylint: disable=method-hidden
+  # because validator only sets date per model instance
+  @declared_attr
+  def verified_date(self):
+    return deferred(
+        db.Column(db.Date, nullable=True),
+        self.__name__
+    )
+
+  @hybrid_property
+  def verified(self):
+    return self.verified_date != None  # noqa
+
+  _publish_attrs = [
+      reflection.PublishOnly('verified'),
+      reflection.PublishOnly('verified_date'),
+  ]
+
+  _aliases = {
+      "verified_date": "Verified Date"
+  }
+
+  @validates('status')
+  def validate_status(self, key, value):
+    """Update verified_date on status change, make verified status final."""
+    # Sqlalchemy only uses one validator per status (not neccessarily the
+    # first) and ignores others. This enables cooperation between validators
+    # since 'status' is not defined here.
+    if hasattr(super(VerifiedDate, self), "validate_status"):
+      value = super(VerifiedDate, self).validate_status(key, value)
+    if (value in self.VERIFIED_STATES and
+       self.status not in self.VERIFIED_STATES):
+      self.verified_date = datetime.datetime.now()
+      value = "Final"
+    elif (value not in self.VERIFIED_STATES and
+          value not in self.DONE_STATES and
+          (self.status in self.VERIFIED_STATES or
+           self.status in self.DONE_STATES)):
+      self.verified_date = None
     return value
 
 

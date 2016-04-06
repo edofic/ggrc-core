@@ -7,12 +7,14 @@ from sqlalchemy.orm import validates
 
 from ggrc import db
 from ggrc.models import reflection
-from ggrc.models.mixins_assignable import Assignable
 from ggrc.models.mixins import BusinessObject
 from ggrc.models.mixins import CustomAttributable
-from ggrc.models.mixins import deferred
+from ggrc.models.mixins import FinishedDate
+from ggrc.models.mixins import VerifiedDate
 from ggrc.models.mixins import TestPlanned
 from ggrc.models.mixins import Timeboxed
+from ggrc.models.mixins import deferred
+from ggrc.models.mixins_assignable import Assignable
 from ggrc.models.object_document import Documentable
 from ggrc.models.object_owner import Ownable
 from ggrc.models.object_person import Personable
@@ -24,10 +26,13 @@ from ggrc.models.track_object_state import track_state_for_class
 
 class Assessment(Assignable, HasObjectState, TestPlanned, CustomAttributable,
                  Documentable, Personable, Timeboxed, Ownable,
-                 Relatable, BusinessObject, db.Model):
+                 Relatable, FinishedDate, VerifiedDate,
+                 BusinessObject, db.Model):
   __tablename__ = 'assessments'
 
-  VALID_STATES = (u"Open", u"In Progress", u"Finished", u"Verified", u"Final")
+  NOT_DONE_STATES = {u"Open", u"In Progress"}
+  DONE_STATES = {u"Finished", u"Verified", u"Final"}
+  VALID_STATES = tuple(NOT_DONE_STATES | DONE_STATES)
   ASSIGNEE_TYPES = (u"Creator", u"Assessor", u"Verifier")
 
   status = deferred(db.Column(db.Enum(*VALID_STATES), nullable=False,

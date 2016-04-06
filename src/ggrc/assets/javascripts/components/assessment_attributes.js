@@ -108,10 +108,12 @@
       }
     }
   });
-  can.Component.extend({
-    tag: 'add-template-filed',
+
+  GGRC.Components('addTemplateField', {
+    tag: 'add-template-field',
     template: can.view(GGRC.mustache_path +
       '/assessment_templates/attribute_add_field.mustache'),
+
     scope: {
       selected: new can.Map(),
       types: [{
@@ -128,22 +130,25 @@
         text: 'Type description'
       }, {
         type: 'Person',
-        text: 'Type description'
+        text: ''  // not used
       }],
+
+      // the field types that require a list of possible values to be defined
       valueAttrs: ['Dropdown', 'Checkbox', 'Radio'],
+
       /*
-       * Create new field
+       * Create a new field.
        *
        * Field must contain value title, type, values and opts.
        * Opts are populated, once we start changing checkbox values
        *
-       * @param {Object} scope - current (add-template-field) scope
-       * @param {jQuery.Object} el - clicked element
-       * @param {Object} ev - click event handler
+       * @param {can.Map} scope - the current (add-template-field) scope
+       * @param {jQuery.Object} el - the clicked DOM element
+       * @param {Object} ev - the event object
        */
       addField: function (scope, el, ev) {
-        var fields = this.attr('fields');
-        var selected = this.attr('selected');
+        var fields = scope.attr('fields');
+        var selected = scope.attr('selected');
         var title = _.trim(selected.title);
         var type = _.trim(selected.type);
         var values = _.splitTrim(selected.values, {
@@ -151,23 +156,26 @@
         }).join(',');
 
         ev.preventDefault();
+
         if (!type || !title ||
             (_.contains(scope.valueAttrs, type) && !values)) {
           return;
         }
 
         fields.push({
-          id: this.attr('id'),
+          id: scope.attr('id'),
           title: title,
           attribute_type: type,
           multi_choice_options: values,
           opts: new can.Map()
         });
+
         _.each(['title', 'values', 'multi_choice_options'], function (type) {
           selected.attr(type, '');
         });
       }
     },
+
     events: {
       /*
        * Set default dropdown type on init

@@ -1227,9 +1227,14 @@ can.Model("can.Model.Cacheable", {
     keys = _.union(keys, longTitle, _.keys(mappings), _.keys(customAttrs));
     $.each(keys, function (index, key) {
       var attrKey = mappings[key] || key;
-      var val = this[attrKey] || customAttrs[attrKey];
+      var val;
       var owner;
       var audit;
+
+      val = this[attrKey];
+      if (val === undefined) {
+        val = customAttrs[attrKey];
+      }
 
       if (val !== undefined && val !== null) {
         if (key === 'owner' || key === 'owners') {
@@ -1250,6 +1255,9 @@ can.Model("can.Model.Cacheable", {
         } else {
           if ($.type(val) === 'date') {
             val = val.toISOString().substring(0, 10);
+          }
+          if ($.type(val) === 'boolean') {
+            val = String(val);
           }
           if (_.contains(['string', 'array'], $.type(val))) {
             values[key] = val;

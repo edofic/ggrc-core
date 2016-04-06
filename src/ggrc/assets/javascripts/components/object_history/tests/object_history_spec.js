@@ -213,8 +213,9 @@ describe('GGRC.Components.objectHistory', function () {
 
       result = method(revisions);
 
-      expect(componentInst._objectChangeDiff.calls.count()).toEqual(2);
+      expect(componentInst._objectChangeDiff.calls.count()).toEqual(3);
 
+      expect(result.length).toEqual(2);
       expect(result[0]).toEqual(diff);
       expect(result[1]).toEqual(diff2);
     });
@@ -426,7 +427,8 @@ describe('GGRC.Components.objectHistory', function () {
 
       expect(Revision.findAll).toHaveBeenCalledWith({
         resource_type: 'ObjectFoo',
-        resource_id: 123
+        resource_id: 123,
+        __sort: 'updated_at'
       });
     });
 
@@ -437,7 +439,8 @@ describe('GGRC.Components.objectHistory', function () {
 
         expect(Revision.findAll).toHaveBeenCalledWith({
           source_type: 'ObjectFoo',
-          source_id: 123
+          source_id: 123,
+          __sort: 'updated_at'
         });
       }
     );
@@ -449,7 +452,8 @@ describe('GGRC.Components.objectHistory', function () {
 
         expect(Revision.findAll).toHaveBeenCalledWith({
           destination_type: 'ObjectFoo',
-          destination_id: 123
+          destination_id: 123,
+          __sort: 'updated_at'
         });
       }
     );
@@ -600,7 +604,7 @@ describe('GGRC.Components.objectHistory', function () {
           madeBy: "User 17",
           updatedAt: new Date('2015-05-17 17:24:01'),
           changes: {
-            origVal: '—',
+            origVal: 'Created',
             newVal: 'Deleted',
             fieldName: 'Mapping to Other: OtherObject'
           }

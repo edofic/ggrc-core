@@ -25,18 +25,44 @@
           ^if_equals" mapper.type "AllObject" "\
           and ^if" mapper.search_only}}
           {{#is_allowed 'create' mapper.model.singular context=null}}
-            <a
-               class="btn btn-small btn-draft"
-               href="javascript://"
-               data-toggle="modal-ajax-form"
-               data-modal-class="modal-wide"
-               data-object-singular="{{mapper.model.singular}}"
-               data-object-plural="{{mapper.model.plural}}"
-               data-join-object-id="{{mapper.join_object_id}}"
-            >
-              <i class="fa fa-plus-circle"></i>
-              Create New {{mapper.model.title_singular}}
-            </a>
+
+            {{#if_equals mapper.type 'AssessmentTemplate'}}
+              <a
+                class="btn btn-small btn-draft"
+                href="javascript://"
+                data-toggle="modal-ajax-form"
+                data-modal-class="modal-wide"
+                data-object-singular="{{model_info 'AssessmentTemplate' 'model_singular'}}"
+                data-object-plural="{{model_info 'AssessmentTemplate' 'root_collection'}}"
+                data-object-params='{
+                  "audit": {
+                      "id": {{mapper.get_instance.id}},
+                      "type": "{{mapper.get_instance.type}}"
+                  },
+                  "context": {
+                      "id": {{mapper.get_instance.context.id}},
+                      "type": "{{json_escape mapper.get_instance.context.type}}"
+                  },
+                  "audit_title": "{{json_escape mapper.get_instance.title}}"
+                }'
+                data-join-object-id="{{mapper.join_object_id}}">
+                <i class="fa fa-plus-circle"></i>
+                Create New {{mapper.model.title_singular}}
+              </a>
+            {{else}}
+              <a
+                 class="btn btn-small btn-draft"
+                 href="javascript://"
+                 data-toggle="modal-ajax-form"
+                 data-modal-class="modal-wide"
+                 data-object-singular="{{mapper.model.singular}}"
+                 data-object-plural="{{mapper.model.plural}}"
+                 data-join-object-id="{{mapper.join_object_id}}">
+                <i class="fa fa-plus-circle"></i>
+                Create New {{mapper.model.title_singular}}
+              </a>
+            {{/if_equals}}
+
           {{/is_allowed}}
         {{/if_helpers}}
       </div>

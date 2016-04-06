@@ -7,7 +7,7 @@
 
 (function(can) {
 
-var scopes = ['https://www.googleapis.com/auth/drive', 'https://www.googleapis.com/auth/apps.groups.settings'];
+var scopes = ['https://www.googleapis.com/auth/drive.file', 'https://www.googleapis.com/auth/apps.groups.settings'];
 
 /**
   create a search query that matches the expected format for GDrive API.

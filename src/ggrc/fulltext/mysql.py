@@ -11,7 +11,7 @@ from ggrc.models.object_owner import ObjectOwner
 from ggrc.models.relationship import Relationship
 from ggrc_basic_permissions.models import UserRole
 from ggrc_basic_permissions import objects_via_assignable_query
-from ggrc_basic_permissions import objects_via_relationships_query
+from ggrc_basic_permissions import program_relationship_query
 from ggrc.rbac import permissions, context_query_filter
 from sqlalchemy import \
     event, and_, or_, literal, union, alias, case, func, distinct
@@ -272,7 +272,7 @@ class MysqlIndexer(SqlIndexer):
 
     if not my_objects:
       type_union_queries.append(
-          objects_via_relationships_query(contact_id, True))
+          program_relationship_query(contact_id, True))
       type_union_queries.append(
           objects_via_assignable_query(contact_id)
       )

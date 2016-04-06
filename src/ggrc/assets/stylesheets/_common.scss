@@ -706,23 +706,15 @@ p {
 .state-value {
   text-transform: uppercase;
   font-weight: bold;
+  background: $stateBgnd;
+  color: $stateText;
+  padding: 0 4px;
   .tree-title-area & {
     font-weight: normal;
   }
   .pane-header & {
     display: inline-block;
     margin-top: 4px;
-  }
-  &.state-float {
-    float: left;
-    margin-top: 0;
-    margin-left: 10px;
-  }
-}
-
-@each $state_label in draft, inactive, declined, inprogress, in_progress, unstarted, overdue, active, verified, planned, accepted, pending, finished, requested, responded, amended_request, updated_response, assigned {
-  .state-#{$state_label} {
-    @extend %state-#{$state_label};
   }
 }
 

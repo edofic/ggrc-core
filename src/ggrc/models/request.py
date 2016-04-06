@@ -11,28 +11,33 @@ from sqlalchemy import orm
 from ggrc import db
 from ggrc.models import audit
 from ggrc.models import reflection
-from ggrc.models.mixins_assignable import Assignable
+from ggrc.models import relationship
 from ggrc.models.mixins import Base
 from ggrc.models.mixins import CustomAttributable
-from ggrc.models.mixins import deferred
 from ggrc.models.mixins import Described
+from ggrc.models.mixins import FinishedDate
 from ggrc.models.mixins import Slugged
 from ggrc.models.mixins import Titled
+from ggrc.models.mixins import VerifiedDate
+from ggrc.models.mixins import deferred
+from ggrc.models.mixins_assignable import Assignable
 from ggrc.models.object_document import Documentable
 from ggrc.models.object_document import ObjectDocument
 from ggrc.models.object_person import Personable
 from ggrc.models.relationship import Relatable
-from ggrc.models import relationship
 from ggrc.services.common import Resource
 
 
 class Request(Assignable, Documentable, Personable, CustomAttributable,
-              Relatable, Titled, Slugged, Described, Base, db.Model):
+              Relatable, Titled, Slugged, Described,
+              FinishedDate, VerifiedDate, Base, db.Model):
   __tablename__ = 'requests'
   _title_uniqueness = False
 
   VALID_TYPES = (u'documentation', u'interview')
-  VALID_STATES = (u'Open', u'In Progress', u'Finished', u'Verified', u'Final')
+  NOT_DONE_STATES = {u'Open', u'In Progress'}
+  DONE_STATES = {u'Finished', u'Verified', u'Final'}
+  VALID_STATES = tuple(NOT_DONE_STATES | DONE_STATES)
   ASSIGNEE_TYPES = (u'Assignee', u'Requester', u'Verifier')
 
   # TODO Remove requestor and requestor_id on database cleanup

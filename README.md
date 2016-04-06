@@ -130,7 +130,8 @@ make appengine_packages_zip
 The application will be accessible via this URL: <http://localhost:8080/>
 
 If you're running the Google App Engine SDK, the App Engine management console
-will be avaiable via this URL: <http://localhost:8000/>
+will be avaiable via this URL: <http://localhost:8000/>. You can login as
+user@example.com with admin rights and setup other users later.
 
 ## Running Tests
 

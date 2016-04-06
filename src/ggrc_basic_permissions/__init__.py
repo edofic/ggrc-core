@@ -146,7 +146,65 @@ def objects_via_assignable_query(user_id, context_not_role=True):
   return mapped_objects.union(assigned_objects)
 
 
-def objects_via_relationships_query(user_id, context_not_role=False):
+def objects_via_relationships_query(model, roles, user_id, context_not_role):
+  """Creates a query that returns objects a user can access via mappings.
+
+    Args:
+        model: base model upon the roles are given
+        roles: list of roles names to check
+        user_id: id of the user
+        context_not_role: use context instead of the role for the third column
+            in the search api we need to return (obj_id, obj_type, context_id),
+            but in ggrc_basic_permissions we need a role instead of a
+            context_id (obj_id, obj_type, role_name)
+
+    Returns:
+        db.session.query object that selects the following columns:
+            | id | type | role_name or context |
+        Rows represent objects that are mapped to objects of the given model
+        (where the user has a listed role) and the corresponding relationships.
+  """
+  _role = aliased(all_models.Role, name="r")
+  _model = aliased(model, name="p")
+  _relationship = aliased(all_models.Relationship, name="rl")
+  _user_role = aliased(all_models.UserRole, name="ur")
+
+  def _join_filter(query, cond):
+    return query.join(_model, cond).\
+        join(_user_role, _model.context_id == _user_role.context_id).\
+        join(_role, _user_role.role_id == _role.id).\
+        filter(and_(_user_role.person_id == user_id, _role.name.in_(roles)))
+
+  def _add_relationship_join(query):
+    # We do a UNION here because using an OR to JOIN both destination
+    # and source causes a full table scan
+    return _join_filter(query,
+                        and_(_relationship.source_type == model.__name__,
+                             _model.id == _relationship.source_id))\
+        .union(_join_filter(
+            query,
+            and_(_relationship.destination_type == model.__name__,
+                 _model.id == _relationship.destination_id)
+        ))
+
+  objects = _add_relationship_join(db.session.query(
+      case([
+          (_relationship.destination_type == model.__name__,
+           _relationship.source_id.label('id'))
+      ], else_=_relationship.destination_id.label('id')),
+      case([
+          (_relationship.destination_type == model.__name__,
+           _relationship.source_type.label('type'))
+      ], else_=_relationship.destination_type.label('type')),
+      literal(None).label('context_id') if context_not_role else _role.name))
+
+  # We also need to return relationships themselves:
+  relationships = _add_relationship_join(db.session.query(
+      _relationship.id, literal("Relationship"), _relationship.context_id))
+  return objects.union(relationships)
+
+
+def program_relationship_query(user_id, context_not_role=False):
   """Creates a query that returns objects a user can access via program.
 
     Args:
@@ -160,43 +218,34 @@ def objects_via_relationships_query(user_id, context_not_role=False):
         db.session.query object that selects the following columns:
             | id | type | role_name or context |
   """
-  _role = aliased(all_models.Role, name="r")
-  _program = aliased(all_models.Program, name="p")
-  _relationship = aliased(all_models.Relationship, name="rl")
-  _user_role = aliased(all_models.UserRole, name="ur")
+  return objects_via_relationships_query(
+      model=all_models.Program,
+      roles=('ProgramEditor', 'ProgramOwner', 'ProgramReader'),
+      user_id=user_id,
+      context_not_role=context_not_role
+  )
 
-  def _join_filter(query, cond):
-    return query.join(_program, cond).\
-        join(_user_role, _program.context_id == _user_role.context_id).\
-        join(_role, _user_role.role_id == _role.id).\
-        filter(and_(_user_role.person_id == user_id, _role.name.in_(
-            ('ProgramEditor', 'ProgramOwner', 'ProgramReader'))))
 
-  def _add_relationship_join(query):
-    # We do a UNION here because using an OR to JOIN both destination
-    # and source causes a full table scan
-    return _join_filter(query,
-                        and_(_relationship.source_type == 'Program',
-                             _program.id == _relationship.source_id))\
-        .union(_join_filter(query,
-                            and_(_relationship.destination_type == 'Program',
-                                 _program.id == _relationship.destination_id)))
+def audit_relationship_query(user_id, context_not_role=False):
+  """Creates a query that returns objects a user can access via audit.
 
-  objects = _add_relationship_join(db.session.query(
-      case([
-          (_relationship.destination_type == "Program",
-           _relationship.source_id.label('id'))
-      ], else_=_relationship.destination_id.label('id')),
-      case([
-          (_relationship.destination_type == "Program",
-           _relationship.source_type.label('type'))
-      ], else_=_relationship.destination_type.label('type')),
-      literal(None).label('context_id') if context_not_role else _role.name))
+    Args:
+        user_id: id of the user
+        context_not_role: use context instead of the role for the third column
+            in the search api we need to return (obj_id, obj_type, context_id),
+            but in ggrc_basic_permissions we need a role instead of a
+            context_id (obj_id, obj_type, role_name)
 
-  # We also need to return relationships themselves:
-  relationships = _add_relationship_join(db.session.query(
-      _relationship.id, literal("Relationship"), _relationship.context_id))
-  return objects.union(relationships)
+    Returns:
+        db.session.query object that selects the following columns:
+            | id | type | role_name or context |
+  """
+  return objects_via_relationships_query(
+      model=all_models.Audit,
+      roles=('Auditor',),
+      user_id=user_id,
+      context_not_role=context_not_role
+  )
 
 
 class CompletePermissionsProvider(object):
@@ -460,10 +509,20 @@ def load_permissions_for(user):  # noqa
           .setdefault('resources', list())\
           .append(object_owner.ownable_id)
 
-  for res in objects_via_relationships_query(user.id).all():
+  for res in program_relationship_query(user.id):
     id_, type_, role_name = res
     actions = ["read", "view_object_page"]
     if role_name in ("ProgramEditor", "ProgramOwner"):
+      actions += ["create", "update", "delete"]
+    for action in actions:
+      permissions.setdefault(action, {})\
+          .setdefault(type_, {})\
+          .setdefault('resources', list())\
+          .append(id_)
+  for res in audit_relationship_query(user.id):
+    id_, type_, role_name = res
+    actions = ["read", "view_object_page"]
+    if type_ in ("Assessment", "Request"):
       actions += ["create", "update", "delete"]
     for action in actions:
       permissions.setdefault(action, {})\

@@ -9,33 +9,60 @@
 <div class="side-content">
   <div {{#instance}}{{data "model"}}{{/instance}} {{ (el) -> el.ggrc_controllers_quick_form({ instance : el.data("model")}); }}>
     <ul class="label-list dates">
-      <li class="gray">
-        <label>
-          Created on
-        </label>
-        <span name="created_at">{{date created_at true}}</span>
-      </li>
-      <li>
-        {{#toggle change_due_date}}
-          <label>Due on</label>
-          <div class="input-group">
-            <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
-            <input tabindex="5" class="span8 input-block-level date" name="due_on" data-toggle="datepicker" data-after="created_at" placeholder="MM/DD/YYYY" type="text" value="{{localize_date due_on}}">
-          </div>
-        {{else}}
-          {{#is_allowed 'update' instance context='for'}}
-            {{#if_in instance.status "In Progress"}}
-              <span class="file-controls">
-                <a href="javascript://" {{toggle_button}}><i class="fa fa-pencil-square-o"></i></a>
-              </span>
-            {{/if_in}}
-          {{/is_allowed}}
+      {{#if created_at}}
+        <li class="gray">
           <label>
-            Due on
+            Created on
           </label>
-          {{date due_on true}}
-        {{/toggle}}
-      </li>
+          <span name="created_at">{{localize_date created_at}}</span>
+        </li>
+        {{/if}}
+        {{#if due_on}}
+        <li>
+          {{#toggle change_due_date}}
+            <label>Due on</label>
+            <div class="input-group">
+              <span class="input-group-addon"><i class="fa fa-calendar"></i></span>
+              <input tabindex="5" class="span8 input-block-level date" name="due_on" data-toggle="datepicker" data-after="created_at" placeholder="MM/DD/YYYY" type="text" value="{{localize_date due_on}}">
+            </div>
+          {{else}}
+            {{#is_allowed 'update' instance context='for'}}
+              {{#if_in instance.status "In Progress"}}
+                <span class="file-controls">
+                  <a href="javascript://" {{toggle_button}}><i class="fa fa-pencil-square-o"></i></a>
+                </span>
+              {{/if_in}}
+            {{/is_allowed}}
+            <label>
+              Due on
+            </label>
+            {{#if_null instance.due_on}}
+              defined
+            {{/if}}
+            {{localize_date due_on}}
+          {{/toggle}}
+        </li>
+      {{/if}}
+      {{#if_helpers '#if' instance.finished_date 'or #if_null' instance.finished_date}}
+        <li>
+          <label>Finished</label>
+          {{#if instance.finished_date}}
+            <span>{{localize_date instance.finished_date}}</span>
+          {{else}}
+            <span class="empty-message">None</span>
+          {{/if}}
+        </li>
+      {{/if_helpers}}
+      {{#if_helpers '#if' instance.verified_date 'or #if_null' instance.verified_date}}
+        <li>
+          <label>Verified</label>
+          {{#if instance.verified_date}}
+            <span>{{localize_date instance.verified_date}}</span>
+          {{else}}
+            <span class="empty-message">None</span>
+          {{/if}}
+        </li>
+      {{/if_helpers}}
     </ul>
   </div>
 </div>
