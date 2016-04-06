@@ -53,7 +53,8 @@
         {{#add_to_current_scope objectTypes=instance._objectTypes}}
         <select
           class="input-medium pull-left"
-          can-value="instance.template_object_type">
+          can-value="instance.template_object_type"
+          >
           {{#each objectTypes}}
             {{#if items}}
               {{#if items.length}}
@@ -70,12 +71,14 @@
         </select>
         {{/add_to_current_scope}}
 
+        {{#if_equals instance.template_object_type "Control"}}
         <label class="inline-check pull-left">
           <input type="checkbox"
             can-value="instance.test_plan_procedure"
             class="js-toggle-controlplans">
           Use control test plans as procedures
         </label>
+        {{/if_equals}}
       </div>
     </div>
 
@@ -90,7 +93,7 @@
             class="field-hide">hide</a>
         </label>
         <div class="wysiwyg-area">
-          <textarea
+            <textarea
             id="system_description"
             can-value="instance.procedure_description"
             class="span12 triple wysihtml5"

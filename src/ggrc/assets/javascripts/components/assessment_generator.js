@@ -65,7 +65,12 @@
           title: title,
           owners: [CMS.Models.Person.findInCacheById(GGRC.current_user.id)]
         };
-        if (object.test_plan) {
+        if (template.procedure_description &&
+            template.procedure_description.length) {
+          data.test_plan = data.template.procedure_description;
+        }
+        if (template.test_plan_procedure &&
+            object.test_plan && object.test_plan.length) {
           data.test_plan = object.test_plan;
         }
         return new CMS.Models.Assessment(data).save();
