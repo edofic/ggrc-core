@@ -14,8 +14,28 @@ from ggrc import db
 from ggrc.models import all_models
 from ggrc.models import Assessment
 from ggrc.models import Relationship
-from ggrc.models import CustomAttributeDefinition
 from ggrc.services.common import Resource
+
+
+def init_hook():
+  # pylint: disable=unused-variable
+  @Resource.model_posted_after_commit.connect_via(Assessment)
+  def handle_assessment_post(sender, obj=None, src=None, service=None):
+    # pylint: disable=unused-argument
+    """Apply custom attribute definitions and map people roles
+    when generating Assessmet with template"""
+
+    if not src["template"]:
+      return
+
+    related = {
+        "template": get_by_id(src["template"]),
+        "obj": get_by_id(src["object"]),
+        "audit": get_by_id(src["audit"]),
+    }
+
+    relate_assignees(obj, related)
+    relate_ca(obj, related)
 
 
 def get_by_id(obj):
@@ -101,8 +121,7 @@ def relate_assignees(assessment, related):
   for person_key, person_type in people_types.iteritems():
     assign_people(
         get_value(person_key, assessment, **related),
-        person_type, assessment, people_list
-        )
+        person_type, assessment, people_list)
   for person in people_list:
     db.session.add(Relationship(**person))
 
@@ -117,7 +136,7 @@ def relate_ca(assessment, related):
                         - obj
                         - audit
   """
-  ca_definitions = CustomAttributeDefinition.query.filter_by.filter_by(
+  ca_definitions = get_model_query("CustomAttributeDefinition").filter_by(
       definition_id=related["template"].id,
       definition_type="assessment_template"
   )
@@ -130,22 +149,3 @@ def relate_ca(assessment, related):
     definition.title = "Definition for {}-{}".format(
         assessment.__tablename__, assessment.id)
     db.session.add(definition)
-
-
-@Resource.model_posted_after_commit.connect_via(Assessment)
-def handle_assessment_post(sender, obj=None, src=None, service=None):
-  # pylint: disable=unused-argument
-  """Apply custom attribute definitions and map people roles
-  when generating Assessmet with template"""
-
-  if not src["template"]:
-    return
-
-  related = {
-      "template": get_by_id(src["template"]),
-      "obj": get_by_id(src["object"]),
-      "audit": get_by_id(src["audit"]),
-  }
-
-  relate_assignees(obj, related)
-  relate_ca(obj, related)

@@ -5,4 +5,12 @@
 
 """Import gGRC model hooks."""
 
-from . import assessment
+from ggrc.models.hooks import assessment
+
+ALL_HOOKS = [
+  assessment
+]
+
+def init_hooks():
+  for hook in ALL_HOOKS:
+    hook.init_hook()

@@ -6,7 +6,6 @@
 from ggrc.models.all_models import *
 from ggrc import settings
 from ggrc import db
-from ggrc.models import hooks
 
 """All gGRC model objects and associated utilities."""
 
@@ -74,6 +73,11 @@ def init_models(app):
   [model._inflector for model in all_models]
 
 
+def init_hooks(app):
+  from ggrc.models import hooks
+  hooks.init_hooks()
+
+
 def init_all_models(app):
   """Register all gGRC models services with the Flask application ``app``."""
 
@@ -86,7 +90,7 @@ def init_all_models(app):
     ext_init_models = getattr(extension_module, 'init_models', None)
     if ext_init_models:
       ext_init_models(app)
-
+  init_hooks(app)
 
 def init_session_monitor_cache():
   from sqlalchemy.orm.session import Session
