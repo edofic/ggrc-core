@@ -13,8 +13,8 @@ from ggrc.services.common import Resource
 
 def get_by_id(obj):
   """Get object instance by id"""
-  model = get_model_query(obj['type'])
-  return model.filter_by(id=obj['id']).first()
+  model = get_model_query(obj["type"])
+  return model.filter_by(id=obj["id"]).first()
 
 
 def get_model_query(model_type):
@@ -35,13 +35,13 @@ def get_value(which, assessment, template, audit, obj):
                               (it can be any object in our app ie. Control, Issue, Facility...)
   """
   types = {
-      'Object Owners': [owner.person for owner in assessment.object_owners],
-      'Audit Lead': audit.contact,
-      'Object Contact': obj.contact,
-      'Primary Contact': obj.contact,
-      'Secondary Contact': obj.secondary_contact,
-      'Primary Assessor': obj.principal_assessor,
-      'Secondary Assessor': obj.secondary_assessor,
+      "Object Owners": [owner.person for owner in assessment.object_owners],
+      "Audit Lead": audit.contact,
+      "Object Contact": obj.contact,
+      "Primary Contact": obj.contact,
+      "Secondary Contact": obj.secondary_contact,
+      "Primary Assessor": obj.principal_assessor,
+      "Secondary Assessor": obj.secondary_assessor,
   }
   people = template.default_people[which]
   return types[people]
@@ -59,18 +59,18 @@ def assign_people(assignees, assignee_role, assessment, relationships):
   """
   assignees = assignees if isinstance(assignees, list) else [assignees]
   for assignee in assignees:
-    rel = (val for val in relationships if val['source'] == assignee)
+    rel = (val for val in relationships if val["source"] == assignee)
     rel = next(rel, None)
     if rel:
-      values = rel['attrs']['AssigneeType'].split(',')
-      rel['attrs']['AssigneeType'] = ','.join(set(values))
+      values = rel["attrs"]["AssigneeType"].split(",")
+      rel["attrs"]["AssigneeType"] = ",".join(set(values))
     else:
       relationships.append({
-          'source': assignee,
-          'destination': assessment,
-          'context': assessment.context,
-          'attrs': {
-              'AssigneeType': assignee_role,
+          "source": assignee,
+          "destination": assessment,
+          "context": assessment.context,
+          "attrs": {
+              "AssigneeType": assignee_role,
           },
       })
 
@@ -86,8 +86,8 @@ def relate_assignees(assessment, related):
                         - audit
   """
   people_types = {
-      'assessors': 'Assessor',
-      'verifiers': 'Verifier',
+      "assessors": "Assessor",
+      "verifiers": "Verifier",
   }
   people_list = []
 
@@ -111,8 +111,8 @@ def relate_ca(assessment, related):
                         - audit
   """
   ca_definitions = CustomAttributeDefinition.query.filter_by.filter_by(
-      definition_id=related['template'].id,
-      definition_type='assessment_template'
+      definition_id=related["template"].id,
+      definition_type="assessment_template"
   )
 
   for definition in ca_definitions:
@@ -120,7 +120,7 @@ def relate_ca(assessment, related):
     definition.id = None
     definition.definition_id = assessment.id
     definition.definition_type = assessment.__tablename__
-    definition.title = 'Definition for {}-{}'.format(
+    definition.title = "Definition for {}-{}".format(
         assessment.__tablename__, assessment.id)
     db.session.add(definition)
 
@@ -130,13 +130,13 @@ def handle_assessment_post(sender, obj=None, src=None, service=None):
   """Apply custom attribute definitions and map people roles
   when generating Assessmet with template"""
 
-  if not src['template']:
+  if not src["template"]:
     return
 
   related = {
-      'template': get_by_id(src['template']),
-      'obj': get_by_id(src['object']),
-      'audit': get_by_id(src['audit']),
+      "template": get_by_id(src["template"]),
+      "obj": get_by_id(src["object"]),
+      "audit": get_by_id(src["audit"]),
   }
 
   relate_assignees(obj, related)
