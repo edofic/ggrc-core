@@ -15,7 +15,6 @@ from ggrc.models import all_models
 from ggrc.models import Assessment
 from ggrc.models import Relationship
 from ggrc.services.common import Resource
-import ipdb
 
 def init_hook():
   # pylint: disable=unused-variable
