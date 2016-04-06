@@ -3,6 +3,13 @@
 # Created By: ivan@reciprocitylabs.com
 # Maintained By: ivan@reciprocitylabs.com
 
+"""
+  Assessment generator hooks
+
+  We are applying assessment template properties and make
+  new relationships and custom attributes
+"""
+
 from ggrc import db
 from ggrc.models import all_models
 from ggrc.models import Assessment
@@ -32,7 +39,7 @@ def get_value(which, assessment, template, audit, obj):
         template (model instance): Template related to Assessment
         audit (model instance): Audit related to Assessment
         obj (model instance): Object related to Assessment
-                              (it can be any object in our app ie. Control, Issue, Facility...)
+            (it can be any object in our app ie. Control,Issue, Facility...)
   """
   types = {
       "Object Owners": [owner.person for owner in assessment.object_owners],
@@ -54,8 +61,8 @@ def assign_people(assignees, assignee_role, assessment, relationships):
         assignees (list of model instances): List of people
         assignee_role (string): It can be either Assessor or Verifier
         assessment (model instance): Assessment model
-        relationships (list): List relationships between assignees and assessment
-                              with merged AssigneeType's
+        relationships (list): List relationships between assignees and
+                              assessment with merged AssigneeType's
   """
   assignees = assignees if isinstance(assignees, list) else [assignees]
   for assignee in assignees:
@@ -127,6 +134,7 @@ def relate_ca(assessment, related):
 
 @Resource.model_posted_after_commit.connect_via(Assessment)
 def handle_assessment_post(sender, obj=None, src=None, service=None):
+  # pylint: disable=unused-argument
   """Apply custom attribute definitions and map people roles
   when generating Assessmet with template"""
 
