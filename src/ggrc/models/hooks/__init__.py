@@ -8,8 +8,9 @@
 from ggrc.models.hooks import assessment
 
 ALL_HOOKS = [
-  assessment
+    assessment
 ]
+
 
 def init_hooks():
   for hook in ALL_HOOKS:
