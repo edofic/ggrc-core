@@ -128,6 +128,7 @@ dashboard-js-files:
   - components/lazy_open_close.js
   - components/object_history/object_history.js
   - components/assessment_templates/assessment_templates.js
+  - components/modal_wrappers/assessment_template_form.js
   #- d3.v2.js
   #- related_graph.js
 

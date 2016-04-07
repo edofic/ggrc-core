@@ -6,6 +6,7 @@
 }}
 
 <div class="hideable-holder">
+  <wrapper-assessment-template instance='instance'>
   <form action="javascript://">
     {{> /static/mustache/base_objects/form_restore.mustache}}
 
@@ -71,14 +72,14 @@
         </select>
         {{/add_to_current_scope}}
 
-        {{#if_equals instance.template_object_type "Control"}}
+        {{#hasPlanProcedure}}
         <label class="inline-check pull-left">
           <input type="checkbox"
             can-value="instance.test_plan_procedure"
             class="js-toggle-controlplans">
           Use control test plans as procedures
         </label>
-        {{/if_equals}}
+        {{/hasPlanProcedure}}
       </div>
     </div>
 
@@ -92,15 +93,26 @@
           <a data-id="hide_description_lk" href="javascript://"
             class="field-hide">hide</a>
         </label>
-        <div class="wysiwyg-area">
+        {{#allowDescription}}
+          <div class="wysiwyg-area">
             <textarea
-            id="system_description"
-            can-value="instance.procedure_description"
-            class="span12 triple wysihtml5"
-            placeholder="Enter Description"
-            tabindex="2"
-            ></textarea>
-        </div>
+              id="system_description"
+              can-value="instance.procedure_description"
+              class="span12 triple wysihtml5"
+              placeholder="Enter Description"
+              tabindex="2"
+              ></textarea>
+          </div>
+        {{else}}
+          <div class="wysiwyg-area">
+            <textarea
+              class="span12 triple"
+              placeholder="Enter Description"
+              tabindex="2"
+              disabled
+              ></textarea>
+          </div>
+        {{/allowDescription}}
       </div>
 
       <div class="span6">
@@ -111,7 +123,7 @@
               <span class="required">*</span>
             </label>
             <dropdown
-              className="input-block-level js-toggle-field"
+              class-name="input-block-level js-toggle-field"
               options-list="instance.people_values"
               name="instance.default_people.assessors"
             ></dropdown>
@@ -134,7 +146,7 @@
             </label>
 
             <dropdown
-              className="input-block-level js-toggle-field"
+              class-name="input-block-level js-toggle-field"
               options-list="instance.people_values"
               name="instance.default_people.verifiers"
             ></dropdown>
@@ -197,6 +209,6 @@
         </div>
       </div>
     </div><!-- custom-attr-wrap end -->
-
  </form>
+ </wrapper-assessment-template>
 </div>
