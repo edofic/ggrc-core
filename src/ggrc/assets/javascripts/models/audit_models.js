@@ -1278,7 +1278,6 @@
      * @param {jQuery.Event} ev - the event that was triggered
      */
     defaultAssesorsChanged: function (context, $el, ev) {
-      console.log('On change assessor', arguments);
       this._updateDropdownEnabled('assessors');
     },
 
@@ -1290,7 +1289,6 @@
      * @param {jQuery.Event} ev - the event that was triggered
      */
     defaultVerifiersChanged: function (context, $el, ev) {
-      console.log('On change verifier', arguments);
       this._updateDropdownEnabled('verifiers');
     },
 
