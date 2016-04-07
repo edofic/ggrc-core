@@ -21,6 +21,7 @@
   <div class="row-fluid add-button">
     <div class="span12">
       <div class="pull-right">
+        {{^if mapper.useTemplates}}
         {{#if_helpers "\
           ^if_equals" mapper.type "AllObject" "\
           and ^if" mapper.search_only}}
@@ -62,9 +63,9 @@
                 Create New {{mapper.model.title_singular}}
               </a>
             {{/if_equals}}
-
           {{/is_allowed}}
         {{/if_helpers}}
+        {{/if}}
       </div>
     </div>
   </div>
