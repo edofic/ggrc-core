@@ -15,8 +15,7 @@
       instance: null
     },
     events: {
-      '{scope.instance} template_object_type': function () {
-        console.log('Type change');
+      '{scope.instance} template_object_type  ': function () {
         this.scope.attr('instance.test_plan_procedure', false);
       }
     },
