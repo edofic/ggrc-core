@@ -2246,26 +2246,29 @@ Mustache.registerHelper("with_auditors", function (instance, options) {
   }, auditors_dfd);
 });
 
-Mustache.registerHelper("if_instance_of", function (inst, cls, options) {
+Mustache.registerHelper('if_instance_of', function (inst, cls, options) {
   var result;
   cls = resolve_computed(cls);
   inst = resolve_computed(inst);
 
-  if (typeof cls === "string") {
-    cls = cls.split("|").map(function (c) {
+  if (typeof cls === 'string') {
+    cls = cls.split('|').map(function (c) {
       return CMS.Models[c];
     });
-  } else if (typeof cls !== "function") {
+  } else if (typeof cls !== 'function') {
     cls = [cls.constructor];
   } else {
     cls = [cls];
   }
 
   result = can.reduce(cls, function (res, c) {
+    if (!inst || !c) {
+      return false;
+    }
     return res || inst instanceof c;
   }, false);
 
-  return options[result ? "fn" : "inverse"](options.contexts);
+  return options[result ? 'fn' : 'inverse'](options.contexts);
 });
 
 Mustache.registerHelper("prune_context", function (options) {
