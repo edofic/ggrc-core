@@ -1155,7 +1155,11 @@
         {value: 'Primary Contact', title: 'Primary Contact'},
         {value: 'Secondary Contact', title: 'Secondary Contact'},
         {value: 'other', title: 'Others...'}
-      ]
+      ],
+      // the custom lists of assessor / verifier IDs if "other" is selected for
+      // the corresponding default_people setting
+      assessorsList: {},
+      verifiersList: {}
     },
 
     /**
@@ -1197,6 +1201,9 @@
       }
       this.attr('_objectTypes', this._choosableObjectTypes());
       this._unpackPeopleData();
+
+      this._updateDropdownEnabled('assessors');
+      this._updateDropdownEnabled('verifiers');
     },
 
     /**
@@ -1212,40 +1219,122 @@
     },
 
     /**
+     * Event handler when an assessor is picked in an autocomplete form field.
+     * It adds the picked assessor's ID to the assessors list.
+     *
+     * @param {can.Map} context - the Mustache context of the `$el`
+     * @param {jQuery.Element} $el - the source of the event `ev`
+     * @param {jQuery.Event} ev - the event that was triggered
+     */
+    assessorAdded: function (context, $el, ev) {
+      var user = ev.selectedItem;
+      this.assessorsList.attr(user.id, true);
+    },
+
+    /**
+     * Event handler when a user clicks to remove an assessor from the
+     * assessors list. It removes the corresponding assessor ID from the list.
+     *
+     * @param {can.Map} context - the Mustache context of the `$el`
+     * @param {jQuery.Element} $el - the source of the event `ev`
+     * @param {jQuery.Event} ev - the event that was triggered
+     */
+    assessorRemoved: function (context, $el, ev) {
+      var user = ev.person;
+      this.assessorsList.removeAttr(String(user.id));
+    },
+
+    /**
+     * Event handler when a verifier is picked in an autocomplete form field.
+     * It adds the picked verifier's ID to the verifiers list.
+     *
+     * @param {can.Map} context - the Mustache context of the `$el`
+     * @param {jQuery.Element} $el - the source of the event `ev`
+     * @param {jQuery.Event} ev - the event that was triggered
+     */
+    verifierAdded: function (context, $el, ev) {
+      var user = ev.selectedItem;
+      this.verifiersList.attr(user.id, true);
+    },
+
+    /**
+     * Event handler when a user clicks to remove a verifier from the verifiers
+     * list. It removes the corresponding verifier ID from the list.
+     *
+     * @param {can.Map} context - the Mustache context of the `$el`
+     * @param {jQuery.Element} $el - the source of the event `ev`
+     * @param {jQuery.Event} ev - the event that was triggered
+     */
+    verifierRemoved: function (context, $el, ev) {
+      var user = ev.person;
+      this.verifiersList.removeAttr(String(user.id));
+    },
+
+    /**
+     * Event handler when a user changes the default assessors option.
+     *
+     * @param {can.Map} context - the Mustache context of the `$el`
+     * @param {jQuery.Element} $el - the source of the event `ev`
+     * @param {jQuery.Event} ev - the event that was triggered
+     */
+    defaultAssesorsChanged: function (context, $el, ev) {
+      console.log('On change assessor', arguments);
+      this._updateDropdownEnabled('assessors');
+    },
+
+    /**
+     * Event handler when a user changes the default verifiers option.
+     *
+     * @param {can.Map} context - the Mustache context of the `$el`
+     * @param {jQuery.Element} $el - the source of the event `ev`
+     * @param {jQuery.Event} ev - the event that was triggered
+     */
+    defaultVerifiersChanged: function (context, $el, ev) {
+      console.log('On change verifier', arguments);
+      this._updateDropdownEnabled('verifiers');
+    },
+
+    /**
+     * Update the autocomplete field's disabled flag based on the current value
+     * of the corresponding dropdown.
+     *
+     * @param {String} name - the value to inspect, must be either "assessors"
+     *   or "verifiers"
+     */
+    _updateDropdownEnabled: function (name) {
+      var disable = this.attr('default_people.' + name) !== 'other';
+      this.attr(name + 'ListDisable', disable);
+    },
+
+    /**
      * Pack the "default people" form data into a JSON string.
      *
      * @return {String} - the JSON-packed default people data
      */
     _packPeopleData: function () {
       var data = {};
-
       /**
-       * Convert a comma-separated list of people to an Array.
+       * Create a sorted (ascending) list of numbers from the given map's keys.
        *
-       * The list elements have any redundant whitespace trimmed from the
-       * beginning and the end. Empty elements are discared from the result,
-       * as are any duplicates.
-       *
-       * @param {String} rawString - the string to convert
-       * @return {Array} - the JSON-packed default people data
+       * @param {can.Map} peopleIds - the map to convert
+       * @return {Array} - ordered IDs
        */
-      function makeList(rawString) {
-        var result = rawString.split(',');
-        result = _.map(result, function (item) {
-          return item.trim();
+      function makeList(peopleIds) {
+        var result = Object.keys(peopleIds.attr()).map(Number);
+        return result.sort(function (x, y) {
+          return x - y;
         });
-        return _.uniq(_.filter(result));
       }
 
       data.assessors = this.attr('default_people.assessors');
       data.verifiers = this.attr('default_people.verifiers');
 
       if (data.assessors === 'other') {
-        data.assessors = makeList(this.attr('assessors_list'));
+        data.assessors = makeList(this.attr('assessorsList'));
       }
 
       if (data.verifiers === 'other') {
-        data.verifiers = makeList(this.attr('verifiers_list'));
+        data.verifiers = makeList(this.attr('verifiersList'));
       }
 
       return JSON.stringify(data);
@@ -1261,9 +1350,18 @@
       var peopleData = instance.default_people;
 
       ['assessors', 'verifiers'].forEach(function (name) {
-        if (peopleData[name] instanceof can.List) {
-          instance.attr(name + '_list', peopleData[name].join(', '));
+        var idsMap;
+        var peopleIds = peopleData[name];
+
+        if (peopleIds instanceof can.List) {
+          idsMap = new can.Map();
+          peopleIds.forEach(function (id) {
+            idsMap.attr(id, true);
+          });
+          instance.attr(name + 'List', idsMap);
           instance.attr('default_people.' + name, 'other');
+        } else {
+          instance.attr(name + 'List', {});
         }
       });
     },

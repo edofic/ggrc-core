@@ -168,64 +168,76 @@ describe('can.Model.AssessmentTemplate', function () {
       });
     });
 
-    it('uses the user-provided list if assessors set to "other"', function () {
-      var result;
+    it('uses the list of chosen assessor IDs if default assessors are set ' +
+      'to "other"',
+      function () {
+        var assessorIds;
+        var result;
 
-      instance.attr('default_people', {
-        assessors: 'other',
-        verifiers: 'Whatever'
-      });
+        instance.attr('default_people', {
+          assessors: 'other',
+          verifiers: 'Whatever'
+        });
 
-      instance.attr('assessors_list', '  John,, Jack Mac,John,  Jill,  , ');
+        assessorIds = new can.Map({'17': true, '2': true, '9': true});
+        instance.attr('assessorsList', assessorIds);
 
-      result = instance._packPeopleData();
+        result = instance._packPeopleData();
 
-      expect(typeof result).toEqual('string');
-      result = JSON.parse(result);
-      expect(result).toEqual({
-        assessors: ['John', 'Jack Mac', 'Jill'],
-        verifiers: 'Whatever'
-      });
-    });
+        expect(typeof result).toEqual('string');
+        result = JSON.parse(result);
+        expect(result).toEqual({
+          assessors: [2, 9, 17],
+          verifiers: 'Whatever'
+        });
+      }
+    );
 
-    it('uses the user-provided list if verifiers set to "other"', function () {
-      var result;
+    it('uses the list of chosen verifier IDs if default verifiers are set ' +
+      'to "other"',
+      function () {
+        var verifierIds;
+        var result;
 
-      instance.attr('default_people', {
-        assessors: 'Whatever',
-        verifiers: 'other'
-      });
+        instance.attr('default_people', {
+          assessors: 'Whatever',
+          verifiers: 'other'
+        });
 
-      instance.attr('verifiers_list', '  First, ,, Sec ond   ,First, Third ');
+        verifierIds = new can.Map({'12': true, '6': true, '11': true});
+        instance.attr('verifiersList', verifierIds);
 
-      result = instance._packPeopleData();
+        result = instance._packPeopleData();
 
-      expect(typeof result).toEqual('string');
-      result = JSON.parse(result);
-      expect(result).toEqual({
-        assessors: 'Whatever',
-        verifiers: ['First', 'Sec ond', 'Third']
-      });
-    });
+        expect(typeof result).toEqual('string');
+        result = JSON.parse(result);
+        expect(result).toEqual({
+          assessors: 'Whatever',
+          verifiers: [6, 11, 12]
+        });
+      }
+    );
   });
 
   describe('_unpackPeopleData() method', function () {
-    it('converts the default assessors list to a string', function () {
+    it('builds an IDs dict from the default assessors list', function () {
       instance.attr('default_people', {
-        assessors: new can.List([12, 5, 7])
+        assessors: new can.List([5, 7, 12])
       });
-      instance.attr('assessors_list', '');
+      instance.attr('assessorsList', {});
 
       instance._unpackPeopleData();
 
-      expect(instance.assessors_list).toEqual('12, 5, 7');
+      expect(
+        instance.assessorsList.attr()
+      ).toEqual({'5': true, '7': true, '12': true});
     });
 
     it('sets the default assessors option to "other" if needed', function () {
       // this is needed when the default assessors setting is actually
       // a list of User IDs...
       instance.attr('default_people', {
-        assessors: new can.List([12, 5, 7])
+        assessors: new can.List([5, 7, 12])
       });
 
       instance._unpackPeopleData();
@@ -233,27 +245,255 @@ describe('can.Model.AssessmentTemplate', function () {
       expect(instance.default_people.assessors).toEqual('other');
     });
 
-    it('converts the default verifiers list to a string', function () {
+    it('clears the assessors IDs dict if needed', function () {
+      instance.attr('assessorsList', {'42': true});
       instance.attr('default_people', {
-        verifiers: new can.List([12, 5, 7])
+        assessors: 'Some User Group'  // not a list of IDs
       });
-      instance.attr('verifiers_list', '');
 
       instance._unpackPeopleData();
 
-      expect(instance.verifiers_list).toEqual('12, 5, 7');
+      expect(instance.assessorsList.attr()).toEqual({});
+    });
+
+    it('builds an IDs dict from the default verifiers list', function () {
+      instance.attr('default_people', {
+        verifiers: new can.List([5, 7, 12])
+      });
+      instance.attr('verifiersList', {});
+
+      instance._unpackPeopleData();
+
+      expect(
+        instance.verifiersList.attr()
+      ).toEqual({'5': true, '7': true, '12': true});
     });
 
     it('sets the default verifiers option to "other" if needed', function () {
       // this is needed when the default verifiers setting is actually
       // a list of User IDs...
       instance.attr('default_people', {
-        verifiers: new can.List([12, 5, 7])
+        verifiers: new can.List([5, 7, 12])
       });
 
       instance._unpackPeopleData();
 
       expect(instance.default_people.verifiers).toEqual('other');
     });
+
+    it('clears the verifiers IDs dict if needed', function () {
+      instance.attr('verifiersList', {'42': true});
+      instance.attr('default_people', {
+        verifiers: 'Some User Group'  // not a list of IDs
+      });
+
+      instance._unpackPeopleData();
+
+      expect(instance.verifiersList.attr()).toEqual({});
+    });
+  });
+
+  describe('assessorAdded() method', function () {
+    var context;
+    var $element;
+    var eventObj;
+
+    beforeEach(function () {
+      context = {};
+      $element = $('<div></div>');
+      eventObj = $.Event();
+    });
+
+    it('adds the new assessor\'s ID to the assessors list', function () {
+      instance.attr('assessorsList', {'7': true});
+      eventObj.selectedItem = {id: 42};
+
+      instance.assessorAdded(context, $element, eventObj);
+
+      expect(
+        instance.attr('assessorsList').attr()
+      ).toEqual({'7': true, '42': true});
+    });
+
+    it('silently ignores duplicate entries', function () {
+      instance.attr('assessorsList', {'7': true});
+      eventObj.selectedItem = {id: 7};
+
+      instance.assessorAdded(context, $element, eventObj);
+      // there should have been no error
+
+      expect(instance.attr('assessorsList').attr()).toEqual({'7': true});
+    });
+  });
+
+  describe('assessorRemoved() method', function () {
+    var context;
+    var $element;
+    var eventObj;
+
+    beforeEach(function () {
+      context = {};
+      $element = $('<div></div>');
+      eventObj = $.Event();
+    });
+
+    it('removes the new assessor\'s ID from the assessors list', function () {
+      instance.attr('assessorsList', {'7': true, '42': true, '3': true});
+      eventObj.person = {id: 42};
+
+      instance.assessorRemoved(context, $element, eventObj);
+
+      expect(
+        instance.attr('assessorsList').attr()
+      ).toEqual({'7': true, '3': true});
+    });
+
+    it('silently ignores removing non-existing entries', function () {
+      instance.attr('assessorsList', {'7': true});
+      eventObj.person = {id: 50};
+
+      instance.assessorRemoved(context, $element, eventObj);
+      // there should have been no error
+
+      expect(instance.attr('assessorsList').attr()).toEqual({'7': true});
+    });
+  });
+
+  describe('verifierAdded() method', function () {
+    var context;
+    var $element;
+    var eventObj;
+
+    beforeEach(function () {
+      context = {};
+      $element = $('<div></div>');
+      eventObj = $.Event();
+    });
+
+    it('adds the new verifier\'s ID to the assessors list', function () {
+      instance.attr('verifiersList', {'7': true});
+      eventObj.selectedItem = {id: 42};
+
+      instance.verifierAdded(context, $element, eventObj);
+
+      expect(
+        instance.attr('verifiersList').attr()
+      ).toEqual({'7': true, '42': true});
+    });
+
+    it('silently ignores duplicate entries', function () {
+      instance.attr('verifiersList', {'7': true});
+      eventObj.selectedItem = {id: 7};
+
+      instance.verifierAdded(context, $element, eventObj);
+      // there should have been no error
+
+      expect(instance.attr('verifiersList').attr()).toEqual({'7': true});
+    });
+  });
+
+  describe('verifierRemoved() method', function () {
+    var context;
+    var $element;
+    var eventObj;
+
+    beforeEach(function () {
+      context = {};
+      $element = $('<div></div>');
+      eventObj = $.Event();
+    });
+
+    it('removes the new verifier\'s ID from the verifiers list', function () {
+      instance.attr('verifiersList', {'7': true, '42': true, '3': true});
+      eventObj.person = {id: 42};
+
+      instance.verifierRemoved(context, $element, eventObj);
+
+      expect(
+        instance.attr('verifiersList').attr()
+      ).toEqual({'7': true, '3': true});
+    });
+
+    it('silently ignores removing non-existing entries', function () {
+      instance.attr('verifiersList', {'7': true});
+      eventObj.person = {id: 50};
+
+      instance.verifierRemoved(context, $element, eventObj);
+      // there should have been no error
+
+      expect(instance.attr('verifiersList').attr()).toEqual({'7': true});
+    });
+  });
+
+  describe('defaultAssesorsChanged() method', function () {
+    var context;
+    var $element;
+    var eventObj;
+
+    beforeEach(function () {
+      context = {};
+      $element = $('<div></div>');
+      eventObj = $.Event();
+    });
+
+    it('sets the assessorsListDisable flag if the corresponding ' +
+      'selected option is different from "other"',
+      function () {
+        instance.attr('assessorsListDisable', false);
+        instance.attr('default_people.assessors', 'Object Owners');
+
+        instance.defaultAssesorsChanged(context, $element, eventObj);
+
+        expect(instance.attr('assessorsListDisable')).toBe(true);
+      }
+    );
+
+    it('clears the assessorsListDisable flag if the corresponding ' +
+      'selected option is "other"',
+      function () {
+        instance.attr('assessorsListDisable', true);
+        instance.attr('default_people.assessors', 'other');
+
+        instance.defaultAssesorsChanged(context, $element, eventObj);
+
+        expect(instance.attr('assessorsListDisable')).toBe(false);
+      }
+    );
+  });
+
+  describe('defaultVerifiersChanged() method', function () {
+    var context;
+    var $element;
+    var eventObj;
+
+    beforeEach(function () {
+      context = {};
+      $element = $('<div></div>');
+      eventObj = $.Event();
+    });
+
+    it('sets the verifiersListDisable flag if the corresponding ' +
+      'selected option is different from "other"',
+      function () {
+        instance.attr('verifiersListDisable', false);
+        instance.attr('default_people.verifiers', 'Object Owners');
+
+        instance.defaultVerifiersChanged(context, $element, eventObj);
+
+        expect(instance.attr('verifiersListDisable')).toBe(true);
+      }
+    );
+
+    it('clears the verifiersListDisable flag if the corresponding ' +
+      'selected option is "other"',
+      function () {
+        instance.attr('verifiersListDisable', true);
+        instance.attr('default_people.verifiers', 'other');
+
+        instance.defaultVerifiersChanged(context, $element, eventObj);
+
+        expect(instance.attr('verifiersListDisable')).toBe(false);
+      }
+    );
   });
 });

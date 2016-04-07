@@ -91,37 +91,56 @@ can.Control("GGRC.Controllers.Modals", {
         .then(this.proxy("autocomplete"));
       this.restore_ui_status_from_storage();
     }.bind(this));
-  }
+  },
 
-  , apply_object_params: function () {
+  apply_object_params: function () {
     if (!this.options.object_params) {
       return;
     }
-    this.options.object_params.each(function(value, key) {
-      this.set_value({ name: key, value: value });
+    this.options.object_params.each(function (value, key) {
+      this.set_value({name: key, value: value});
     }, this);
   },
-  "input[data-lookup] focus": function (el, ev) {
+
+  'input[data-lookup] focus': function (el, ev) {
     this.autocomplete(el);
   },
-  "input[data-lookup] keyup": function (el, ev) {
+
+  'input[data-lookup] keyup': function (el, ev) {
     // Set the transient field for validation
-    var name = el.attr('name').split('.'),
-        instance = this.options.instance,
-        value = el.val();
+    var name;
+    var instance;
+    var value;
 
-    name.pop(); //set the owner to null, not the email
-    instance._transient || instance.attr("_transient", new can.Observe({}));
+    // in some cases we want to disable automapping the selected item to the
+    // modal's underlying object (e.g. we don't want to map the picked Persons
+    // to an AssessmentTemplates object)
+    if (el.data('no-automap')) {
+      return;
+    }
 
-    can.reduce(name.slice(0, -1), function(current, next) {
-      current = current + "." + next;
-      instance.attr(current) || instance.attr(current, new can.Observe({}));
+    name = el.attr('name').split('.');
+    instance = this.options.instance;
+    value = el.val();
+
+    name.pop(); // set the owner to null, not the email
+
+    if (!instance._transient) {
+      instance.attr('_transient', new can.Observe({}));
+    }
+
+    can.reduce(name.slice(0, -1), function (current, next) {
+      current = current + '.' + next;
+      if (!instance.attr(current)) {
+        instance.attr(current, new can.Observe({}));
+      }
       return current;
-    }, "_transient");
+    }, '_transient');
 
-    instance.attr(["_transient"].concat(name).join("."), value);
+    instance.attr(['_transient'].concat(name).join('.'), value);
   },
-  autocomplete: function(el) {
+
+  autocomplete: function (el) {
     $.cms_autocomplete.call(this, el);
   },
   autocomplete_select: function (el, event, ui) {

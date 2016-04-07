@@ -1,16 +1,11 @@
-{{!
+/*!
   Copyright (C) 2016 Google Inc., authors, and contributors <see AUTHORS file>
   Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
   Created By: ivan@reciprocitylabs.com
   Maintained By: ivan@reciprocitylabs.com
-}}
+*/
 
-<select
-  class="{{getClassName}}"
-  can-value="{{name}}"
-  can-change="onChange"
-  >
-  {{#optionsList}}
-    <option value="{{value}}" label="{{title}}"></option>
-  {{/optionsList}}
-</select>
+describe('GGRC.Components.assessmentTemplates', function () {
+  'use strict';
+
+});

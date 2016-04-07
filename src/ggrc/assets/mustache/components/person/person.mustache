@@ -1,0 +1,16 @@
+{{!
+  Copyright (C) 2016 Google Inc., authors, and contributors <see AUTHORS file>
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+  Created By: peter@reciprocitylabs.com
+  Maintained By: peter@reciprocitylabs.com
+}}
+
+<div class="person">
+  {{#if personObj}}
+    {{{renderLive '/static/mustache/people/popover.mustache' person=personObj}}}
+
+    <a href="javascript://" class="unmap" title="Remove">
+      <i class="fa fa-trash"></i>
+    </a>
+  {{/if}}
+</div>

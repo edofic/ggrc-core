@@ -129,6 +129,9 @@ dashboard-js-files:
   - components/object_history/object_history.js
   - components/assessment_templates/assessment_templates.js
   - components/modal_wrappers/assessment_template_form.js
+  - components/autocomplete/autocomplete.js
+  - components/object_history/object_history.js
+  - components/person/person.js
   #- d3.v2.js
   #- related_graph.js
 
@@ -232,7 +235,9 @@ dashboard-js-template-files:
   - components/unified_mapper/mapper_results.mustache
   - components/assessment_templates/assessment_templates.mustache
   - components/dropdown/dropdown.mustache
+  - components/autocomplete/autocomplete.mustache
   - components/object_history/object_history.mustache
+  - components/person/person.mustache
   - custom_attributes/modal_content.mustache
   - custom_attributes/info.mustache
   - custom_attribute_definitions/modal_content.mustache

@@ -1,0 +1,17 @@
+{{!
+  Copyright (C) 2016 Google Inc., authors, and contributors <see AUTHORS file>
+  Licensed under http://www.apache.org/licenses/LICENSE-2.0 <see LICENSE file>
+  Created By: peter@reciprocitylabs.com
+  Maintained By: peter@reciprocitylabs.com
+}}
+
+<div class="span12 objective-selector field-wrap">
+  <input type="text"
+    data-lookup="{{searchItemsType}}"
+    null-if-empty="true"
+    {{#if disable}}disabled{{/if}}
+    {{autocomplete_select}}
+    data-no-automap="{{automappingOff}}"
+    class="search-icon"
+    placeholder="{{placeholder}}">
+</div>

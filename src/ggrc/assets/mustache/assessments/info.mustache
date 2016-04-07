@@ -100,13 +100,8 @@
       {{{render '/static/mustache/base_objects/urls.mustache' is_program=true instance=instance}}}
       {{{render '/static/mustache/custom_attributes/info.mustache' instance=instance}}}
       <div class="tabs-wrap">
-        <ul class="nav nav-tabs">
-          <li class="active"><a href="#tab1" data-toggle="tab">
-            Comments
-          </a></li>
-        </ul>
-        <div class="tab-content">
-          <div class="tab-pane fade in active" id="tab1">
+        <tabs instance="instance">
+          <tab-panel panels="panels" title="Comments" instance="instance">
             {{#if_helpers '\
               ^if_equals' status 'Verified' '\
               and ^if_equals' status 'Final' }}
@@ -117,8 +112,11 @@
             {{/is_allowed}}
             {{/if_equals}}
             {{{render "/static/mustache/base_templates/comment_list.mustache" instance=. update_count="false"}}}
-          </div>
-        </div>
+          </tab-panel>
+          <tab-panel panels="panels" title="Assessment log" instance="instance">
+            <revision-log instance="instance"></revision-log>
+          </tab-panel>
+        </tabs>
       </div>
     </div><!-- tier-content end -->
 

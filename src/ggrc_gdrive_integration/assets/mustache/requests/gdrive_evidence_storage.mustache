@@ -7,7 +7,7 @@
 
 {{#with_mapping 'extended_folders' instance}}
   <div class="oneline">
-    {{#if_in instance.status "Open,Final,Verified"}}
+    {{#if_in instance.status "Final,Verified"}}
       {{#if extended_folders.length}}
         <ggrc-gdrive-picker-launcher
           instance="instance"

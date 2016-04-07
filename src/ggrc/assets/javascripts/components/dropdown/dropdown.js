@@ -23,6 +23,7 @@
     scope: {
       name: '@',
       className: '@',
+      onChange: $.noop,
       /*
         Options list should be an `array` of object containing `title` and `value`
         [{
