@@ -40,7 +40,7 @@ def init_hook():
 def get_by_id(obj):
   """Get object instance by id"""
   model = get_model_query(obj["type"])
-  return model.filter_by(id=obj["id"]).first()
+  return model.get(obj["id"])
 
 
 def get_model_query(model_type):
