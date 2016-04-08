@@ -49,27 +49,33 @@ def get_model_query(model_type):
   return db.session.query(model)
 
 
-def get_value(which, assessment, template, audit, obj):
+def get_value(which, template, audit, obj):
   """Gets person value from string
 
       Args:
         which (string): type of people we are getting from template
-        assessment (model instance): Assessment model
         template (model instance): Template related to Assessment
         audit (model instance): Audit related to Assessment
         obj (model instance): Object related to Assessment
             (it can be any object in our app ie. Control,Issue, Facility...)
   """
   types = {
-      "Object Owners": [owner.person for owner in assessment.object_owners],
-      "Audit Lead": audit.contact,
-      "Object Contact": obj.contact,
-      "Primary Contact": obj.contact,
-      "Secondary Contact": obj.secondary_contact,
-      "Primary Assessor": obj.principal_assessor,
-      "Secondary Assessor": obj.secondary_assessor,
+      "Object Owners": [owner.person
+        for owner in getattr(obj, 'object_owners', None)],
+      "Audit Lead": getattr(audit, 'contact', None),
+      "Object Contact": getattr(obj, 'contact', None),
+      "Primary Contact": getattr(obj, 'contact', None),
+      "Secondary Contact": getattr(obj, 'secondary_contact', None),
+      "Primary Assessor": getattr(obj, 'principal_assessor', None),
+      "Secondary Assessor": getattr(obj, 'secondary_assessor', None),
   }
   people = template.default_people[which]
+
+  if isinstance(people, list):
+    return [get_by_id({
+        'type': 'Person',
+        'id': person_id
+    }) for person_id in people]
   return types[people]
 
 
@@ -122,7 +128,7 @@ def relate_assignees(assessment, related):
 
   for person_key, person_type in people_types.iteritems():
     assign_people(
-        get_value(person_key, assessment, **related),
+        get_value(person_key, **related),
         person_type, assessment, people_list)
   for person in people_list:
     db.session.add(Relationship(**person))
