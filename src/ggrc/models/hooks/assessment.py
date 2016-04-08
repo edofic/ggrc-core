@@ -24,21 +24,20 @@ def init_hook():
     """Apply custom attribute definitions and map people roles
     when generating Assessmet with template"""
 
-    if not src.get("template", False):
-      return
-
     related = {
-        "template": get_by_id(src["template"]),
-        "obj": get_by_id(src["object"]),
-        "audit": get_by_id(src["audit"]),
+        "template": get_by_id(src.get("template", None)),
+        "obj": get_by_id(src.get("object", None)),
+        "audit": get_by_id(src.get("audit", None)),
     }
-
     relate_assignees(obj, related)
     relate_ca(obj, related)
 
 
 def get_by_id(obj):
   """Get object instance by id"""
+  if not obj:
+    return
+
   model = get_model_query(obj["type"])
   return model.get(obj["id"])
 
@@ -49,7 +48,7 @@ def get_model_query(model_type):
   return db.session.query(model)
 
 
-def get_value(which, template, audit, obj):
+def get_value(which, audit, obj, template=None):
   """Gets person value from string
 
       Args:
@@ -59,6 +58,9 @@ def get_value(which, template, audit, obj):
         obj (model instance): Object related to Assessment
             (it can be any object in our app ie. Control,Issue, Facility...)
   """
+  if not template:
+    return
+
   types = {
       "Object Owners": [owner.person
         for owner in getattr(obj, 'object_owners', None)],
@@ -69,14 +71,16 @@ def get_value(which, template, audit, obj):
       "Primary Assessor": getattr(obj, 'principal_assessor', None),
       "Secondary Assessor": getattr(obj, 'secondary_assessor', None),
   }
-  people = template.default_people[which]
+  people = template.default_people.get(which, None)
+  if not people:
+    return
 
   if isinstance(people, list):
     return [get_by_id({
         'type': 'Person',
         'id': person_id
     }) for person_id in people]
-  return types[people]
+  return types.get(people, None)
 
 
 def assign_people(assignees, assignee_role, assessment, relationships):
@@ -89,27 +93,22 @@ def assign_people(assignees, assignee_role, assessment, relationships):
         relationships (list): List relationships between assignees and
                               assessment with merged AssigneeType's
   """
-  needle = False
   assignees = assignees if isinstance(assignees, list) else [assignees]
+  assignees = [assignee for assignee in assignees if assignee is not None]
+
+  if not len(assignees) and assignee_role != "Verifier":
+    assignees.append(assessment.modified_by)
 
   for assignee in assignees:
-    if not assignee:
-      return
-
-    needle = True
     rel = (val for val in relationships if val["source"] == assignee)
     rel = next(rel, None)
     if rel:
       values = rel["attrs"]["AssigneeType"].split(",")
+      values.append(assignee_role)
       rel["attrs"]["AssigneeType"] = ",".join(set(values))
     else:
       relationships.append(
         get_relationship_dict(assignee, assessment, assignee_role))
-
-  if not needle and assignee_role == "Assessor":
-    relationships.append(
-      get_relationship_dict(assessment.modified_by, assessment, assignee_role))
-
 
 def get_relationship_dict(source, destination, role):
   return {
@@ -128,13 +127,13 @@ def relate_assignees(assessment, related):
     Args:
         assessment (model instance): Assessment model
         related (dict): Dict containing model instances related to assessment
-                        - template
                         - obj
                         - audit
   """
   people_types = {
       "assessors": "Assessor",
       "verifiers": "Verifier",
+      "creator": "Creator",
   }
   people_list = []
 
@@ -142,9 +141,6 @@ def relate_assignees(assessment, related):
     assign_people(
         get_value(person_key, **related),
         person_type, assessment, people_list)
-
-  people_list.append(
-    get_relationship_dict(assessment.modified_by, assessment, "Creator"))
 
   for person in people_list:
     db.session.add(Relationship(**person))
@@ -160,6 +156,9 @@ def relate_ca(assessment, related):
                         - obj
                         - audit
   """
+  if not related["template"]:
+    return
+
   ca_definitions = get_model_query("CustomAttributeDefinition").filter_by(
       definition_id=related["template"].id,
       definition_type="assessment_template"
