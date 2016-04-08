@@ -4,7 +4,8 @@
 # Maintained By: miha@reciprocitylabs.com
 
 from flask import json
-from sqlalchemy import or_, and_
+from sqlalchemy import and_
+from sqlalchemy import or_
 
 from ggrc.models import Policy
 from ggrc.models import OrgGroup
@@ -33,7 +34,6 @@ class TestCsvImport(TestCase):
       }, "gGRC Admin")
 
   def test_multi_basic_policy_orggroup_product(self):
-
     filename = "multi_basic_policy_orggroup_product.csv"
     response_json = self.import_file(filename)
 
@@ -55,15 +55,14 @@ class TestCsvImport(TestCase):
     self.assertEqual(Product.query.count(), 5)
 
   def test_multi_basic_policy_orggroup_product_with_warnings(self):
-
     filename = "multi_basic_policy_orggroup_product_with_warnings.csv"
     response_json = self.import_file(filename)
 
     row_messages = []
     object_counts = {
-      "Policy": (3, 0, 2),
-      "Org Group": (0, 0, 4),
-      "Product": (5, 0, 2),
+        "Policy": (3, 0, 2),
+        "Org Group": (0, 0, 4),
+        "Product": (5, 0, 2),
     }
     for row in response_json:
       created, updated, ignored = object_counts[row["name"]]
@@ -112,9 +111,9 @@ class TestCsvImport(TestCase):
     response_json = self.import_file(filename)
 
     object_counts = {
-      "Policy": (4, 0, 0),
-      "Org Group": (4, 0, 0),
-      "Product": (5, 0, 0),
+        "Policy": (4, 0, 0),
+        "Org Group": (4, 0, 0),
+        "Product": (5, 0, 0),
     }
     for row in response_json:
       created, updated, ignored = object_counts[row["name"]]
@@ -135,23 +134,17 @@ class TestCsvImport(TestCase):
   def test_big_import_with_mappings(self):
     response = self.import_file("data_for_export_testing.csv")
     for block in response:
-      self.assertEqual(set(), set(block["row_warnings"]),
-                        json.dumps(block, indent=2, sort_keys=True))
-      self.assertEqual(set(), set(block["row_errors"]),
-                        json.dumps(block, indent=2, sort_keys=True))
-      self.assertEqual(set(), set(block["block_warnings"]),
-                        json.dumps(block, indent=2, sort_keys=True))
-      self.assertEqual(set(), set(block["block_errors"]),
-                        json.dumps(block, indent=2, sort_keys=True))
+      msg = json.dumps(block, indent=2, sort_keys=True)
+      self.assertEqual(set(), set(block["row_warnings"]), msg)
+      self.assertEqual(set(), set(block["row_errors"]), msg)
+      self.assertEqual(set(), set(block["block_warnings"]), msg)
+      self.assertEqual(set(), set(block["block_errors"]), msg)
 
   def test_big_import_with_mappings_dry_run(self):
     response = self.import_file("data_for_export_testing.csv", dry_run=True)
     for block in response:
-      self.assertEqual(set(), set(block["row_warnings"]),
-                        json.dumps(block, indent=2, sort_keys=True))
-      self.assertEqual(set(), set(block["row_errors"]),
-                        json.dumps(block, indent=2, sort_keys=True))
-      self.assertEqual(set(), set(block["block_warnings"]),
-                        json.dumps(block, indent=2, sort_keys=True))
-      self.assertEqual(set(), set(block["block_errors"]),
-                        json.dumps(block, indent=2, sort_keys=True))
+      msg = json.dumps(block, indent=2, sort_keys=True)
+      self.assertEqual(set(), set(block["row_warnings"]), msg)
+      self.assertEqual(set(), set(block["row_errors"]), msg)
+      self.assertEqual(set(), set(block["block_warnings"]), msg)
+      self.assertEqual(set(), set(block["block_errors"]), msg)

@@ -61,7 +61,9 @@
         && !/^\d+-\d+-\d+$/.test(date) && !/^\d+\/\d+\/\d+$/.test(date)
         //  Don't correct timezone if `moment.js` has already done it
         && !/[-+]\d\d:?\d\d/.test(date)) {
-      ret.subtract(new Date().getTimezoneOffset(), 'minute');
+      // Use the UTC offset that was active at the moment in time to correct
+      // the date's timezone.
+      ret.add(ret.utcOffset(), 'minute');
     }
 
     if (oldValue && oldValue.getTime
