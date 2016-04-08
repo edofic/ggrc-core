@@ -89,25 +89,37 @@ def assign_people(assignees, assignee_role, assessment, relationships):
         relationships (list): List relationships between assignees and
                               assessment with merged AssigneeType's
   """
+  needle = False
   assignees = assignees if isinstance(assignees, list) else [assignees]
+
   for assignee in assignees:
     if not assignee:
       return
 
+    needle = True
     rel = (val for val in relationships if val["source"] == assignee)
     rel = next(rel, None)
     if rel:
       values = rel["attrs"]["AssigneeType"].split(",")
       rel["attrs"]["AssigneeType"] = ",".join(set(values))
     else:
-      relationships.append({
-          "source": assignee,
-          "destination": assessment,
-          "context": assessment.context,
-          "attrs": {
-              "AssigneeType": assignee_role,
-          },
-      })
+      relationships.append(
+        get_relationship_dict(assignee, assessment, assignee_role))
+
+  if not needle and assignee_role == "Assessor":
+    relationships.append(
+      get_relationship_dict(assessment.modified_by, assessment, assignee_role))
+
+
+def get_relationship_dict(source, destination, role):
+  return {
+      "source": source,
+      "destination": destination,
+      "context": destination.context,
+      "attrs": {
+          "AssigneeType": role,
+      },
+  }
 
 
 def relate_assignees(assessment, related):
@@ -130,6 +142,10 @@ def relate_assignees(assessment, related):
     assign_people(
         get_value(person_key, **related),
         person_type, assessment, people_list)
+
+  people_list.append(
+    get_relationship_dict(assessment.modified_by, assessment, "Creator"))
+
   for person in people_list:
     db.session.add(Relationship(**person))
 
