@@ -66,13 +66,15 @@
           owners: [CMS.Models.Person.findInCacheById(GGRC.current_user.id)]
         };
 
-        if (assessmentTemplate.procedure_description &&
-            assessmentTemplate.procedure_description.length) {
-          data.test_plan = assessmentTemplate.procedure_description;
-        }
-        if (assessmentTemplate.test_plan_procedure &&
-            object.test_plan && object.test_plan.length) {
-          data.test_plan = object.test_plan;
+        if (assessmentTemplate) {
+          if (assessmentTemplate.procedure_description &&
+              assessmentTemplate.procedure_description.length) {
+            data.test_plan = assessmentTemplate.procedure_description;
+          }
+          if (assessmentTemplate.test_plan_procedure &&
+              object.test_plan && object.test_plan.length) {
+            data.test_plan = object.test_plan;
+          }
         }
         return new CMS.Models.Assessment(data).save();
       },
