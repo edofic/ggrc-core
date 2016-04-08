@@ -1151,7 +1151,7 @@
         {value: 'Audit Lead', title: 'Audit Lead'},
         {value: 'Object Contact', title: 'Object Contact'},
         {value: 'Primary Assessor', title: 'Primary Assessor'},
-        {value: 'Secondary Assessors', title: 'Secondary Assessors'},
+        {value: 'Secondary Assessor', title: 'Secondary Assessor'},
         {value: 'Primary Contact', title: 'Primary Contact'},
         {value: 'Secondary Contact', title: 'Secondary Contact'},
         {value: 'other', title: 'Others...'}
