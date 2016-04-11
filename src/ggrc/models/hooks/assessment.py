@@ -29,6 +29,9 @@ def init_hook():
         "obj": get_by_id(src.get("object", None)),
         "audit": get_by_id(src.get("audit", None)),
     }
+    if related["template"] is None:
+      # no template -> no generation needed
+      return
     relate_assignees(obj, related)
     relate_ca(obj, related)
 
