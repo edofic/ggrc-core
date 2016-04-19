@@ -90,7 +90,12 @@
               </div>
             {{/is_allowed}}
             {{/if_equals}}
-            {{{render "/static/mustache/base_templates/comment_list.mustache" instance=instance update_count="false"}}}
+
+            {{#render_overrides "/static/mustache/base_templates/comment_list.mustache" instance=instance update_count="false"}}
+              {{#override_block "my_block"}}
+                overriden text
+              {{/override_block}}
+            {{/render_overrides}}
           </tab-panel>
           <tab-panel panels="panels" title="Request Log" instance="instance">
             <revision-log instance="instance"></revision-log>

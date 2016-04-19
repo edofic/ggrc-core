@@ -7,6 +7,9 @@
 
 {{#instance.class.info_pane_options.comments}}
 {{#add_to_current_scope parent_instance=instance}}
+  {{#define_block "my_block"}}
+    my default text
+  {{/define_block}}
   <ul class="entry-list" {{data 'options'}} data-disable-lazy-loading="true" data-update-count="{{update_count}}"
     {{ (el) -> el.cms_controllers_tree_view(el.data("options")).control("tree_view").display() }}>
   </ul>
