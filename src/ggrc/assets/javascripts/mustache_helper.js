@@ -3389,4 +3389,54 @@ Mustache.registerHelper("un_camel_case", function (str, options) {
   }
   return newval;
 });
+
+  /**
+   * Global scope for block overrides used by define_block, override_block,
+   * and render_overrides.
+   */
+  Mustache.blockOverrideStack = [{}];
+
+  /**
+   * Define a named block that can be overriden with override_block.
+   *
+   * If no override is providen the body is rendered.
+   */
+  Mustache.registerHelper("define_block", function (name, options) {
+    var stack = Mustache.blockOverrideStack;
+    var scope = stack[stack.length - 1];
+    name = Mustache.resolve(name);
+    if (scope.name) {
+      return scope.name.call(options, options.contexts);
+    }
+    return options.fn(options.contexts);
+  });
+
+  /**
+   * Use the body to override the named block.
+   *
+   * It pushes the body to the override stack to be used with local scope at
+   * block-definition site.
+   */
+  Mustache.registerHelper("override_block", function (name, options) {
+    var stack = Mustache.blockOverrideStack;
+    var scope = stack[stack.length - 1];
+    scope.name = options.fn;
+  });
+
+  /**
+   * Just like `render` but executes `override_block` calls in body.
+   */
+  Mustache.registerHelper("render_overrides", function (template, options) {
+    var stack = Mustache.blockOverrideStack;
+    var scope = stack[stack.length - 1];
+    scope = Object.create(scope);
+    stack.push(scope);
+    try {
+      // run for side effects on blockOverrideStack, namely `override_block`s
+      options.fn(options.contexts);
+      return Mustache._helpers.render.fn(template, options);
+    } finally {
+      stack.pop();
+    }
+  });
 })(this, jQuery, can);
