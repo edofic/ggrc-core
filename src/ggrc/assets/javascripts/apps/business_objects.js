@@ -450,7 +450,8 @@
           Program: {
             mapping: "_program",
             parent_instance: GGRC.page_instance(),
-            draw_children: false,
+            draw_children: true,
+            child_options: [related_objects_child_options],
             model: CMS.Models.Program,
             show_view: GGRC.mustache_path + "/programs/tree.mustache",
             allow_mapping: false,
