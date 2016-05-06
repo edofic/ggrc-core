@@ -48,9 +48,11 @@
           this._results = results;
 
           $.when.apply($, results)
-            .always(options.context.closeModal.bind(options.context))
             .done(this.notify.bind(this))
-            .fail(this.notify.bind(this));
+            .fail(this.notify.bind(this))
+            .always(function() {
+              window.location.reload();
+            });
         }.bind(this));
       },
       generateModel: function (object, template) {
