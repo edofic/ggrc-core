@@ -13,6 +13,7 @@ import time
 from flask import current_app, request
 from settings import CUSTOM_URL_ROOT
 
+import ggrc
 
 class GrcEncoder(json.JSONEncoder):
 
@@ -275,6 +276,48 @@ class QueryCounter(object):
   @property
   def get(self):
     return len(self.queries)
+
+
+class Transaction(object):
+
+  class Proxy(object):
+
+    def __init__(self, tr, session):
+      self.tr = tr
+      self.session = session
+      self.current = self.session.begin_nested()
+
+    def commit(self, *args, **kwargs):
+      try:
+        self.current.commit(*args, **kwargs)
+      finally:
+        self.current = self.session.begin_nested()
+
+    def rollback(self, *args, **kwargs):
+      try:
+        self.current.rollback(*args, **kwargs)
+      finally:
+        self.current = self.session.begin_nested()
+
+    def __getattr__(self, attr):
+      return getattr(self.session, attr)
+
+    def __call__(self, *args, **kwargs):
+      return self.session.__call__(*args, **kwargs)
+
+  def __enter__(self):
+    self.parent = ggrc.db.session
+    self.tr = self.parent.begin_nested()
+    proxy = self.Proxy(self.tr, self.parent)
+    ggrc.db.session = proxy
+    return proxy
+
+  def __exit__(self, exc_type, exc_value, exc_trace):
+    if exc_type is None:
+      self.tr.commit()
+    else:
+      self.tr.rollback()
+    ggrc.db.session = self.parent
 
 
 class BenchmarkContextManager(object):

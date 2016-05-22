@@ -1181,19 +1181,20 @@ class Resource(ModelView):
     if wrap:
       body = [body]
     res = []
-    for src in body:
-      try:
-        src_res = None
-        src_res = self.collection_post_step(
-            UnicodeSafeJsonWrapper(src), no_result)
-        db.session.commit()
-      except Exception as e:
-        if not src_res or 200 <= src_res[0] < 300:
-          src_res = (getattr(e, "code", 500), e.message)
-        current_app.logger.warn("Collection POST commit failed:")
-        current_app.logger.exception(e)
-        db.session.rollback()
-      res.append(src_res)
+    with utils.Transaction():
+      for src in body:
+        try:
+          src_res = None
+          src_res = self.collection_post_step(
+              UnicodeSafeJsonWrapper(src), no_result)
+          db.session.commit()
+        except Exception as e:
+          if not src_res or 200 <= src_res[0] < 300:
+            src_res = (getattr(e, "code", 500), e.message)
+          current_app.logger.warn("Collection POST commit failed:")
+          current_app.logger.exception(e)
+          db.session.rollback()
+        res.append(src_res)
     headers = {"Content-Type": "application/json"}
     errors = []
     if wrap:
