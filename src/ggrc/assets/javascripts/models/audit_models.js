@@ -977,8 +977,12 @@
         attachmentCount = attachmentCount();
         _.each(instance.custom_attribute_definitions, function (definition) {
           var pred = {custom_attribute_id: definition.id};
-          if (definition.mandatory && !_.some(values, pred)) {
-            needed.value.push(definition.title);
+          var value;
+          if (definition.mandatory) {
+            value = _.find(values, pred);
+            if (!value || !value.attribute_value) {
+              needed.value.push(definition.title);
+            }
           }
         });
         _.each(values, function (cav) {
